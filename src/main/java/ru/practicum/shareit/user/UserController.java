@@ -64,6 +64,6 @@ public class UserController {
         log.info("Получен DELETE /users/{}",
                 id);
         userService.deleteUserById(id);
-        log.info("Пользователь успешно удалён, id = {}" , id);
+        log.info("Пользователь успешно удалён, id = {}", id);
     }
 }
