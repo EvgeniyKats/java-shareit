@@ -17,4 +17,6 @@ public interface ItemRepository {
     Item updateItem(Item updatedItem, Long itemId, Long userId, boolean needToUpdateName);
 
     boolean deleteItemById(Long itemId, Long userId);
+
+    void deleteAllItemsByUserId(Long userId);
 }

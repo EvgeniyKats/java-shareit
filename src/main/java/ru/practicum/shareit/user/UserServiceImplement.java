@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.custom.DuplicateException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
+import ru.practicum.shareit.item.ItemRepository;
 
 import java.util.Optional;
 
@@ -13,6 +14,7 @@ import java.util.Optional;
 @Slf4j
 public class UserServiceImplement implements UserService {
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     public User getUserById(Long id) {
@@ -60,6 +62,8 @@ public class UserServiceImplement implements UserService {
                     .setValueParameter(id)
                     .build();
         }
+        log.trace("Пользователь с id = {}, успешно удалён", id);
+        itemRepository.deleteAllItemsByUserId(id);
     }
 
     private User getUserByIdOrThrowNotFound(Long id) {

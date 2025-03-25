@@ -116,4 +116,21 @@ public class ItemRepositoryInMemory implements ItemRepository {
 
         return true;
     }
+
+    @Override
+    public void deleteAllItemsByUserId(Long userId) {
+        Set<Item> items = itemsByUserId.remove(userId);
+        if (items == null) return;
+
+        for (Item item : items) {
+            itemByItemId.remove(item.getId());
+
+            String[] parts = item.getName().split(" ");
+
+            // Удаление соответствия
+            for (String part : parts) {
+                itemsByPartOfName.get(part).remove(item);
+            }
+        }
+    }
 }
