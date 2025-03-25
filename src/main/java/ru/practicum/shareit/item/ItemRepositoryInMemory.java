@@ -18,8 +18,8 @@ public class ItemRepositoryInMemory implements ItemRepository {
     private final Map<Long, Item> itemByItemId = new HashMap<>();
     private final Map<Long, Set<Item>> itemsByUserId = new HashMap<>();
     /**
-     * Хранит соответствие каждого слова (разделенного пробелом) item.name : item
-     * Полезно, если получение происходит чаще изменения названия предмета
+     * Хранит соответствие: каждое слово имени предмета (item.name.split) : уникальные предметы (Item)
+     * Полезно, если чтение чаще модификации
      */
     private final Map<String, Set<Item>> itemsByPartOfName = new HashMap<>();
     private Long idItemNext = 1L;
@@ -35,17 +35,18 @@ public class ItemRepositoryInMemory implements ItemRepository {
     }
 
     /**
-     * @param text Искомый текст по имени предмета, который разобьётся на String[] word
+     * @param text Запрос на поиск, по каждому слову которого будет произведён суммарный поиск
      * @return Список уникальных предметов, доступных для бронирования
      */
     public List<Item> getItemsByText(String text) {
         Set<Item> ans = new HashSet<>();
         String[] words = text.split(" ");
 
-        // Получение из мапы совпадений по каждому слову запроса
+        // Получение совпадений из мапы, по каждому слову из запроса
         for (String w : words) {
-            if (itemsByPartOfName.get(w) == null) continue;
-            for (Item item : itemsByPartOfName.get(w)) {
+            Set<Item> items = itemsByPartOfName.get(w);
+            if (items == null) continue;
+            for (Item item : items) {
                 if (item.getIsAvailable()) {
                     ans.add(item);
                 }
@@ -66,7 +67,7 @@ public class ItemRepositoryInMemory implements ItemRepository {
         itemsByUserId.putIfAbsent(userId, new HashSet<>());
         itemsByUserId.get(userId).add(item);
 
-        // Запись в мапу соответсвие каждого слова из названия и предмета
+        // Запись соответсвий
         for (String part : partOfName) {
             part = part.toUpperCase();
             itemsByPartOfName.putIfAbsent(part, new HashSet<>());
@@ -111,6 +112,7 @@ public class ItemRepositoryInMemory implements ItemRepository {
 
         // Удаление соответствия
         for (String part : parts) {
+            part = part.toUpperCase();
             itemsByPartOfName.get(part).remove(item);
         }
 
@@ -129,6 +131,7 @@ public class ItemRepositoryInMemory implements ItemRepository {
 
             // Удаление соответствия
             for (String part : parts) {
+                part = part.toUpperCase();
                 itemsByPartOfName.get(part).remove(item);
             }
         }
