@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    public GetUserDto getUserById(@PathVariable Long id) {
+    public GetUserDto getUserById(@Min(1) @PathVariable Long id) {
         log.info("Получен GET /users/{}", id);
         return MapperUserDto.userToGetDto(userService.getUserById(id));
     }
@@ -44,7 +45,8 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public GetUserDto updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserDto updateUserDto) {
+    public GetUserDto updateUser(@Min(1) @PathVariable Long id,
+                                 @Valid @RequestBody UpdateUserDto updateUserDto) {
         log.info("Получен PATCH /users/{}, параметры email = {}, name = {}",
                 id,
                 updateUserDto.getEmail(),
@@ -60,7 +62,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUserById(@PathVariable Long id) {
+    public void deleteUserById(@Min(1) @PathVariable Long id) {
         log.info("Получен DELETE /users/{}",
                 id);
         userService.deleteUserById(id);
