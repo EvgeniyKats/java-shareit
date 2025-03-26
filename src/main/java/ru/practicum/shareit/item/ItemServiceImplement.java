@@ -5,6 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.custom.BadRequestException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
+import ru.practicum.shareit.item.dto.CreateItemDto;
+import ru.practicum.shareit.item.dto.GetItemDto;
+import ru.practicum.shareit.item.dto.MapperItemDto;
+import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -19,39 +23,48 @@ public class ItemServiceImplement implements ItemService {
     private final ItemRepository itemRepository;
 
     @Override
-    public Item getItemById(Long itemId, Long userId) {
+    public GetItemDto getItemById(Long itemId, Long userId) {
         log.trace("Попытка получить предмет с itemId = {}, от пользователя userId = {}", itemId, userId);
         throwNotFoundIfUserAbsent(userId);
-        return getItemByIdOrThrowNotFound(itemId);
+        Item item = getItemByIdOrThrowNotFound(itemId);
+        return MapperItemDto.itemToGetDto(item);
     }
 
     @Override
-    public List<Item> getItemsByUserId(Long userId) {
+    public List<GetItemDto> getItemsByUserId(Long userId) {
         log.trace("Попытка получить предметы пользователя userId = {}", userId);
         throwNotFoundIfUserAbsent(userId);
-        return itemRepository.getItemsByUserId(userId);
+        List<Item> items = itemRepository.getItemsByUserId(userId);
+        return items.stream()
+                .map(MapperItemDto::itemToGetDto)
+                .toList();
     }
 
     @Override
-    public List<Item> getItemsByText(String text, Long userId) {
+    public List<GetItemDto> getItemsByText(String text, Long userId) {
         log.trace("Попытка получить предметы через поиск \"{}\" от пользователя userId = {}", text, userId);
         throwNotFoundIfUserAbsent(userId);
-        return itemRepository.getItemsByText(text);
+        List<Item> items = itemRepository.getItemsByText(text);
+        return items.stream()
+                .map(MapperItemDto::itemToGetDto)
+                .toList();
     }
 
     @Override
-    public Item createItem(Item item, Long userId) {
+    public GetItemDto createItem(CreateItemDto createItemDto, Long userId) {
         log.trace("Попытка создать предмет от пользователя userId = {}", userId);
         throwNotFoundIfUserAbsent(userId);
+        Item item = MapperItemDto.createDtoToItem(createItemDto);
         itemRepository.createItem(item, userId);
         log.trace("Предмет успешно создан пользователем userId = {}, его itemId = {}", userId, item.getId());
-        return item;
+        return MapperItemDto.itemToGetDto(item);
     }
 
     @Override
-    public Item updateItem(Item updatedItem, Long itemId, Long userId) {
+    public GetItemDto updateItem(UpdateItemDto updateItemDto, Long itemId, Long userId) {
         log.trace("Попытка создать предмет itemId = {}, от пользователя userId = {}", itemId, userId);
         throwNotFoundIfUserAbsent(userId);
+        Item updatedItem = MapperItemDto.updateDtoToItem(updateItemDto);
 
         Item currentItem = getItemByIdOrThrowNotFound(itemId);
         throwBadRequestIfUserNotOwnerOfItem(currentItem, userId);
@@ -66,8 +79,9 @@ public class ItemServiceImplement implements ItemService {
             log.trace("У предмета с itemId = {}, не меняется имя", itemId);
             needToUpdateName = false;
         }
-
-        return itemRepository.updateItem(updatedItem, itemId, userId, needToUpdateName);
+        Item ans = itemRepository.updateItem(updatedItem, itemId, userId, needToUpdateName);
+        log.trace("Предмет с itemId = {}, успешно обновлен", itemId);
+        return MapperItemDto.itemToGetDto(ans);
     }
 
     @Override

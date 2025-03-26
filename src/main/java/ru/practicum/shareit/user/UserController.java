@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.dto.GetUserDto;
-import ru.practicum.shareit.user.dto.MapperUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 
 @RestController
@@ -29,7 +28,9 @@ public class UserController {
     @GetMapping("/{id}")
     public GetUserDto getUserById(@Min(1) @PathVariable Long id) {
         log.info("Получен GET /users/{}", id);
-        return MapperUserDto.userToGetDto(userService.getUserById(id));
+        GetUserDto ans = userService.getUserById(id);
+        log.info("Пользователь с id = {}, успешно найден", id);
+        return ans;
     }
 
     @PostMapping
@@ -38,10 +39,9 @@ public class UserController {
         log.info("Получен POST /users, параметры email = {}, name = {}",
                 createUserDto.getEmail(),
                 createUserDto.getName());
-        User user = userService.createUser(MapperUserDto.createDtoToUser(createUserDto));
-
-        log.info("Пользователь успешно создан, id = {}", user.getId());
-        return MapperUserDto.userToGetDto(user);
+        GetUserDto ans = userService.createUser(createUserDto);
+        log.info("Пользователь успешно создан, id = {}", ans.getId());
+        return ans;
     }
 
     @PatchMapping("/{id}")
@@ -51,13 +51,13 @@ public class UserController {
                 id,
                 updateUserDto.getEmail(),
                 updateUserDto.getName());
-        User user = userService.updateUser(id, MapperUserDto.updateDtoToUser(updateUserDto));
+        GetUserDto ans = userService.updateUser(id, updateUserDto);
 
         log.info("Пользователь успешно обновлен, его параметры, id = {}, email = {}, name = {}",
-                user.getId(),
-                user.getEmail(),
-                user.getName());
-        return MapperUserDto.userToGetDto(user);
+                ans.getId(),
+                ans.getEmail(),
+                ans.getName());
+        return ans;
     }
 
     @DeleteMapping("/{id}")

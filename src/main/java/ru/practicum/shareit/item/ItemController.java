@@ -18,9 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.GetItemDto;
-import ru.practicum.shareit.item.dto.MapperItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
-import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
@@ -36,26 +34,26 @@ public class ItemController {
     public GetItemDto getItemById(@Min(1) @PathVariable Long itemId,
                                   @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /items/{} , userId = {}", itemId, userId);
-        Item item = itemService.getItemById(itemId, userId);
+        GetItemDto ans = itemService.getItemById(itemId, userId);
         log.info("Предмет с itemId = {}, успешно получен", itemId);
-        return MapperItemDto.itemToGetDto(item);
+        return ans;
     }
 
     @GetMapping
     public List<GetItemDto> getItemsByUserId(@Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /items, userId = {}", userId);
-        List<Item> items = itemService.getItemsByUserId(userId);
-        log.info("Список предметов пользователя userId = {} : items = {}", userId, items);
-        return items.stream().map(MapperItemDto::itemToGetDto).toList();
+        List<GetItemDto> ans = itemService.getItemsByUserId(userId);
+        log.info("Список предметов пользователя userId = {} : items = {}", userId, ans);
+        return ans;
     }
 
     @GetMapping("/search")
     public List<GetItemDto> searchByText(@RequestParam String text,
                                          @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /items/search?text={}", text);
-        List<Item> items = itemService.getItemsByText(text, userId);
-        log.info("Список предметов по запросу GET /items/search?text={} : items = {}", text, items);
-        return items.stream().map(MapperItemDto::itemToGetDto).toList();
+        List<GetItemDto> ans = itemService.getItemsByText(text, userId);
+        log.info("Список предметов по запросу GET /items/search?text={} : items = {}", text, ans);
+        return ans;
     }
 
     @PostMapping
@@ -63,9 +61,9 @@ public class ItemController {
     public GetItemDto createItem(@Valid @RequestBody CreateItemDto createItemDto,
                                  @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен POST /items, userId = {}", userId);
-        Item item = itemService.createItem(MapperItemDto.createDtoToItem(createItemDto), userId);
-        log.info("Предмет, успешно создан, его itemId = {}", item.getId());
-        return MapperItemDto.itemToGetDto(item);
+        GetItemDto ans = itemService.createItem(createItemDto, userId);
+        log.info("Предмет, успешно создан, его itemId = {}", ans.getId());
+        return ans;
     }
 
     @PatchMapping("/{itemId}")
@@ -73,15 +71,15 @@ public class ItemController {
                                  @Valid @RequestBody UpdateItemDto updateItemDto,
                                  @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен PATCH /items/{} , userId = {}", itemId, userId);
-        Item item = itemService.updateItem(MapperItemDto.updateDtoToItem(updateItemDto), itemId, userId);
+        GetItemDto ans = itemService.updateItem(updateItemDto, itemId, userId);
         log.info("Предмет с itemId = {}, успешно обновлен, его параметры owner = {}, name = {}, description = {}, "
                         + "available = {}",
                 itemId,
-                item.getOwner(),
-                item.getName(),
-                item.getDescription(),
-                item.getIsAvailable());
-        return MapperItemDto.itemToGetDto(item);
+                ans.getOwner(),
+                ans.getName(),
+                ans.getDescription(),
+                ans.getIsAvailable());
+        return ans;
     }
 
     @DeleteMapping("/{itemId}")

@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.custom.DuplicateException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.user.dto.CreateUserDto;
+import ru.practicum.shareit.user.dto.GetUserDto;
+import ru.practicum.shareit.user.dto.MapperUserDto;
+import ru.practicum.shareit.user.dto.UpdateUserDto;
 
 import java.util.Optional;
 
@@ -17,24 +21,30 @@ public class UserServiceImplement implements UserService {
     private final ItemRepository itemRepository;
 
     @Override
-    public User getUserById(Long id) {
+    public GetUserDto getUserById(Long id) {
         log.trace("Попытка получить пользователя с id = {}", id);
-        return getUserByIdOrThrowNotFound(id);
+        User ans = getUserByIdOrThrowNotFound(id);
+        log.trace("Пользователь с id = {}, успешно получен", id);
+        return MapperUserDto.userToGetDto(ans);
     }
 
     @Override
-    public User createUser(User user) {
-        log.trace("Попытка создать пользователя email = {}, name = {}", user.getEmail(), user.getName());
-        throwDuplicateIfEmailInStorage(user.getEmail());
+    public GetUserDto createUser(CreateUserDto createUserDto) {
+        log.trace("Попытка создать пользователя email = {}, name = {}",
+                createUserDto.getEmail(),
+                createUserDto.getName());
+        throwDuplicateIfEmailInStorage(createUserDto.getEmail());
+        User user = MapperUserDto.createDtoToUser(createUserDto);
         userRepository.createUser(user);
         log.trace("Пользователь успешно создан, id = {}", user.getId());
-        return user;
+        return MapperUserDto.userToGetDto(user);
     }
 
     @Override
-    public User updateUser(Long id, User updatedUser) {
+    public GetUserDto updateUser(Long id, UpdateUserDto updateUserDto) {
         log.trace("Попытка обновить пользователя с id = {}", id);
         User currentUser = getUserByIdOrThrowNotFound(id);
+        User updatedUser = MapperUserDto.updateDtoToUser(updateUserDto);
         boolean needToChangeEmail;
 
         log.trace("Проверка email в updateUser()");
@@ -49,7 +59,9 @@ public class UserServiceImplement implements UserService {
             needToChangeEmail = false;
         }
 
-        return userRepository.updateUser(id, updatedUser, needToChangeEmail);
+        User ans = userRepository.updateUser(id, updatedUser, needToChangeEmail);
+        log.trace("Пользователь с id = {}, успешно обновлен", id);
+        return MapperUserDto.userToGetDto(ans);
     }
 
     @Override
