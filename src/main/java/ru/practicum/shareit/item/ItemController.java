@@ -28,11 +28,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class ItemController {
+    private static final String HEADER_USER_ID = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @GetMapping("/{itemId}")
     public GetItemDto getItemById(@PathVariable Long itemId,
-                                  @RequestHeader("X-Sharer-User-Id") Long userId) {
+                                  @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /items/{} , userId = {}", itemId, userId);
         Item item = itemService.getItemById(itemId, userId);
         log.info("Предмет с itemId = {}, успешно получен", itemId);
@@ -40,7 +41,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<GetItemDto> getItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<GetItemDto> getItemsByUserId(@RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /items, userId = {}", userId);
         List<Item> items = itemService.getItemsByUserId(userId);
         log.info("Список предметов пользователя userId = {} : items = {}", userId, items);
@@ -48,7 +49,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<GetItemDto> searchByText(@RequestParam String text, @RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<GetItemDto> searchByText(@RequestParam String text, @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /items/search?text={}", text);
         List<Item> items = itemService.getItemsByText(text, userId);
         log.info("Список предметов по запросу GET /items/search?text={} : items = {}", text, items);
@@ -58,7 +59,7 @@ public class ItemController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public GetItemDto createItem(@Valid @RequestBody CreateItemDto createItemDto,
-                                 @RequestHeader("X-Sharer-User-Id") Long userId) {
+                                 @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен POST /items, userId = {}", userId);
         Item item = itemService.createItem(MapperItemDto.createDtoToItem(createItemDto), userId);
         log.info("Предмет, успешно создан, его itemId = {}", item.getId());
@@ -68,7 +69,7 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public GetItemDto updateItem(@PathVariable Long itemId,
                                  @Valid @RequestBody UpdateItemDto updateItemDto,
-                                 @RequestHeader("X-Sharer-User-Id") Long userId) {
+                                 @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен PATCH /items/{} , userId = {}", itemId, userId);
         Item item = itemService.updateItem(MapperItemDto.updateDtoToItem(updateItemDto), itemId, userId);
         log.info("Предмет с itemId = {}, успешно обновлен, его параметры owner = {}, name = {}, description = {}, "
@@ -84,7 +85,7 @@ public class ItemController {
     @DeleteMapping("/{itemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteItem(@PathVariable Long itemId,
-                           @RequestHeader("X-Sharer-User-Id") Long userId) {
+                           @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен DELETE /items/{} , userId = {}", itemId, userId);
         itemService.deleteItemById(itemId, userId);
         log.info("Предмет с itemId = {}, успешно удалён", itemId);
