@@ -1,6 +1,8 @@
 spring:
   jpa:
     hibernate:
+      jdbc:
+        time_zone: UTC
       ddl-auto: none
     properties:
       hibernate:

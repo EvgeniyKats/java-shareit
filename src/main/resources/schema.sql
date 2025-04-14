@@ -11,3 +11,21 @@ CREATE TABLE IF NOT EXISTS user_list (
 	email varchar(255) NOT NULL,
 	name varchar(512) NOT NULL UNIQUE
 );
+
+CREATE TABLE IF NOT EXISTS booking (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    booker_id bigint NOT NULL,
+    owner_id bigint NOT NULL,
+    status integer NOT NULL,
+    start_booking_time timestamp NOT NULL,
+    end_booking_time timestamp NOT NULL,
+    CONSTRAINT start_less_when_end CHECK (start_booking_time < end_booking_time)
+);
+
+CREATE TABLE IF NOT EXISTS comment (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    author_id bigint NOT NULL,
+    item_id bigint NOT NULL,
+    text varchar(500) NOT NULL,
+    created_time timestamp NOT NULL
+);
