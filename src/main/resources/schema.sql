@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS item (
 	owner bigint NOT NULL,
 	name varchar(100) NOT NULL,
 	description varchar(200) NOT NULL,
-	isAvailable boolean NOT NULL
+	available boolean NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS user_list (

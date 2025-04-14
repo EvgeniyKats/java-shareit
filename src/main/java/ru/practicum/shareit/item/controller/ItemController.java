@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.GetItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
@@ -50,7 +51,7 @@ public class ItemController {
     @GetMapping("/search")
     public List<GetItemDto> searchByText(@RequestParam String text,
                                          @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
-        log.info("Получен GET /items/search?text={}", text);
+        log.info("Получен GET /items/search?text={}, userId={}", text, userId);
         List<GetItemDto> ans = itemService.getItemsByText(text, userId);
         log.info("Список предметов по запросу GET /items/search?text={} : items = {}", text, ans);
         return ans;
@@ -78,7 +79,7 @@ public class ItemController {
                 ans.getOwner(),
                 ans.getName(),
                 ans.getDescription(),
-                ans.getIsAvailable());
+                ans.getAvailable());
         return ans;
     }
 

@@ -1,16 +1,17 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.custom.BadRequestException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
+import ru.practicum.shareit.item.dal.ItemRepository;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.GetItemDto;
 import ru.practicum.shareit.item.dto.MapperItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.dal.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,22 +22,23 @@ import java.util.Optional;
 public class ItemServiceImplement implements ItemService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final MapperItemDto mapperItemDto;
 
     @Override
     public GetItemDto getItemById(Long itemId, Long userId) {
         log.trace("Попытка получить предмет с itemId = {}, от пользователя userId = {}", itemId, userId);
         throwNotFoundIfUserAbsent(userId);
         Item item = getItemByIdOrThrowNotFound(itemId);
-        return MapperItemDto.itemToGetDto(item);
+        return mapperItemDto.itemToGetDto(item);
     }
 
     @Override
     public List<GetItemDto> getItemsByUserId(Long userId) {
         log.trace("Попытка получить предметы пользователя userId = {}", userId);
         throwNotFoundIfUserAbsent(userId);
-        List<Item> items = itemRepository.getItemsByUserId(userId);
+        List<Item> items = itemRepository.findByOwner(userId);
         return items.stream()
-                .map(MapperItemDto::itemToGetDto)
+                .map(mapperItemDto::itemToGetDto)
                 .toList();
     }
 
@@ -44,9 +46,10 @@ public class ItemServiceImplement implements ItemService {
     public List<GetItemDto> getItemsByText(String text, Long userId) {
         log.trace("Попытка получить предметы через поиск \"{}\" от пользователя userId = {}", text, userId);
         throwNotFoundIfUserAbsent(userId);
-        List<Item> items = itemRepository.getItemsByText(text);
+        if (text.isBlank()) return List.of();
+        List<Item> items = itemRepository.findByAvailableTrueAndNameContainingIgnoreCase(text);
         return items.stream()
-                .map(MapperItemDto::itemToGetDto)
+                .map(mapperItemDto::itemToGetDto)
                 .toList();
     }
 
@@ -54,34 +57,26 @@ public class ItemServiceImplement implements ItemService {
     public GetItemDto createItem(CreateItemDto createItemDto, Long userId) {
         log.trace("Попытка создать предмет от пользователя userId = {}", userId);
         throwNotFoundIfUserAbsent(userId);
-        Item item = MapperItemDto.createDtoToItem(createItemDto);
-        itemRepository.createItem(item, userId);
+        Item item = mapperItemDto.createDtoToItem(createItemDto);
+        item.setOwner(userId);
+        itemRepository.save(item);
         log.trace("Предмет успешно создан пользователем userId = {}, его itemId = {}", userId, item.getId());
-        return MapperItemDto.itemToGetDto(item);
+        return mapperItemDto.itemToGetDto(item);
     }
 
     @Override
     public GetItemDto updateItem(UpdateItemDto updateItemDto, Long itemId, Long userId) {
         log.trace("Попытка создать предмет itemId = {}, от пользователя userId = {}", itemId, userId);
         throwNotFoundIfUserAbsent(userId);
-        Item updatedItem = MapperItemDto.updateDtoToItem(updateItemDto);
+        Item updatedItem = mapperItemDto.updateDtoToItem(updateItemDto);
 
         Item currentItem = getItemByIdOrThrowNotFound(itemId);
         throwBadRequestIfUserNotOwnerOfItem(currentItem, userId);
 
-        boolean needToUpdateName;
-
-        log.trace("Проверка необходимости обновления имени у предмета itemId = {}", itemId);
-        if (updatedItem.hasName() && !updatedItem.getName().equals(currentItem.getName())) {
-            log.trace("У предмета с itemId = {}, необходимо обновить имя", itemId);
-            needToUpdateName = true;
-        } else {
-            log.trace("У предмета с itemId = {}, не меняется имя", itemId);
-            needToUpdateName = false;
-        }
-        Item ans = itemRepository.updateItem(updatedItem, itemId, userId, needToUpdateName);
+        currentItem.updateFromAnotherItem(updatedItem);
+        Item ans = itemRepository.save(currentItem);
         log.trace("Предмет с itemId = {}, успешно обновлен", itemId);
-        return MapperItemDto.itemToGetDto(ans);
+        return mapperItemDto.itemToGetDto(ans);
     }
 
     @Override
@@ -90,20 +85,13 @@ public class ItemServiceImplement implements ItemService {
         throwNotFoundIfUserAbsent(userId);
         Item currentItem = getItemByIdOrThrowNotFound(itemId);
         throwBadRequestIfUserNotOwnerOfItem(currentItem, userId);
-
-        if (!itemRepository.deleteItemById(itemId, userId)) {
-            throw NotFoundException.builder()
-                    .setNameObject("Предмет")
-                    .setNameParameter("itemId")
-                    .setValueParameter(itemId)
-                    .build();
-        }
+        itemRepository.deleteById(itemId);
         log.trace("Успешно удален предмет с itemId = {}", itemId);
     }
 
     private Item getItemByIdOrThrowNotFound(Long itemId) {
         log.trace("Проверка предмета с itemId = {} в хранилище", itemId);
-        Optional<Item> optionalItem = itemRepository.getItemById(itemId);
+        Optional<Item> optionalItem = itemRepository.findById(itemId);
         if (optionalItem.isEmpty()) {
             throw NotFoundException.builder()
                     .setNameObject("Предмет")
@@ -117,7 +105,7 @@ public class ItemServiceImplement implements ItemService {
 
     private void throwNotFoundIfUserAbsent(Long userId) {
         log.trace("Проверка на существования пользователя с userId = {}", userId);
-        if (userRepository.getUserById(userId).isEmpty()) {
+        if (userRepository.findById(userId).isEmpty()) {
             throw NotFoundException.builder()
                     .setNameObject("Пользователь")
                     .setNameParameter("userId")

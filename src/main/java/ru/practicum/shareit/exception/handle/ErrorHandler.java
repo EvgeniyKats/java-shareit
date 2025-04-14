@@ -9,8 +9,8 @@ import ru.practicum.shareit.exception.custom.BadRequestException;
 import ru.practicum.shareit.exception.custom.DuplicateException;
 import ru.practicum.shareit.exception.custom.IncorrectParameterException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
-import ru.practicum.shareit.item.ItemController;
-import ru.practicum.shareit.user.UserController;
+import ru.practicum.shareit.item.controller.ItemController;
+import ru.practicum.shareit.user.controller.UserController;
 
 @Slf4j
 @RestControllerAdvice(assignableTypes = {UserController.class, ItemController.class})
