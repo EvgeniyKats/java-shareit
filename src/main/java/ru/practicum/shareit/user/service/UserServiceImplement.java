@@ -3,9 +3,9 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.custom.DuplicateException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
-import ru.practicum.shareit.item.dal.ItemRepository;
 import ru.practicum.shareit.user.dal.UserRepository;
 import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.dto.GetUserDto;
@@ -18,9 +18,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class UserServiceImplement implements UserService {
     private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
     private final MapperUserDto mapperUserDto;
 
     @Override
@@ -32,6 +32,7 @@ public class UserServiceImplement implements UserService {
     }
 
     @Override
+    @Transactional
     public GetUserDto createUser(CreateUserDto createUserDto) {
         log.trace("Попытка создать пользователя email = {}, name = {}",
                 createUserDto.getEmail(),
@@ -44,6 +45,7 @@ public class UserServiceImplement implements UserService {
     }
 
     @Override
+    @Transactional
     public GetUserDto updateUser(Long id, UpdateUserDto updateUserDto) {
         log.trace("Попытка обновить пользователя с id = {}", id);
         User currentUser = getUserByIdOrThrowNotFound(id);
@@ -65,6 +67,7 @@ public class UserServiceImplement implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUserById(Long id) {
         log.trace("Попытка удалить пользователя с id = {}", id);
         userRepository.deleteById(id);

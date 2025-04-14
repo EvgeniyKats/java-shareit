@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.custom.BadRequestException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
 import ru.practicum.shareit.item.dal.ItemRepository;
@@ -19,6 +20,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class ItemServiceImplement implements ItemService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
@@ -36,7 +38,7 @@ public class ItemServiceImplement implements ItemService {
     public List<GetItemDto> getItemsByUserId(Long userId) {
         log.trace("Попытка получить предметы пользователя userId = {}", userId);
         throwNotFoundIfUserAbsent(userId);
-        List<Item> items = itemRepository.findByOwner(userId);
+        List<Item> items = itemRepository.findByOwnerId(userId);
         return items.stream()
                 .map(mapperItemDto::itemToGetDto)
                 .toList();
@@ -54,17 +56,19 @@ public class ItemServiceImplement implements ItemService {
     }
 
     @Override
+    @Transactional
     public GetItemDto createItem(CreateItemDto createItemDto, Long userId) {
         log.trace("Попытка создать предмет от пользователя userId = {}", userId);
         throwNotFoundIfUserAbsent(userId);
         Item item = mapperItemDto.createDtoToItem(createItemDto);
-        item.setOwner(userId);
+        item.setOwnerId(userId);
         itemRepository.save(item);
         log.trace("Предмет успешно создан пользователем userId = {}, его itemId = {}", userId, item.getId());
         return mapperItemDto.itemToGetDto(item);
     }
 
     @Override
+    @Transactional
     public GetItemDto updateItem(UpdateItemDto updateItemDto, Long itemId, Long userId) {
         log.trace("Попытка создать предмет itemId = {}, от пользователя userId = {}", itemId, userId);
         throwNotFoundIfUserAbsent(userId);
@@ -80,6 +84,7 @@ public class ItemServiceImplement implements ItemService {
     }
 
     @Override
+    @Transactional
     public void deleteItemById(Long itemId, Long userId) {
         log.trace("Попытка удалить предмет itemId = {}, от пользователя userId = {}", itemId, userId);
         throwNotFoundIfUserAbsent(userId);
@@ -119,7 +124,7 @@ public class ItemServiceImplement implements ItemService {
         log.trace("Проверка на соответствие владельца предмета itemId = {} и пользователя userId = {}",
                 item.getId(),
                 userId);
-        if (!item.getOwner().equals(userId)) {
+        if (!item.getOwnerId().equals(userId)) {
             throw new BadRequestException("Пользователь с userId = " + userId
                     + " не владеет предметом itemId = " + item.getId());
         }

@@ -21,8 +21,8 @@ public class Item {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "owner")
-    private Long owner;
+    @Column(name = "owner_id")
+    private Long ownerId;
 
     @Column(name = "name")
     private String name;

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS item (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	owner bigint NOT NULL,
+	owner_id bigint NOT NULL,
 	name varchar(100) NOT NULL,
 	description varchar(200) NOT NULL,
 	available boolean NOT NULL
