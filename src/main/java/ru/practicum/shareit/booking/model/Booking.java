@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.booking.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -6,12 +6,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -24,22 +28,20 @@ public class Booking {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "booker_id")
-    private Long bookerId;
+    @ManyToOne
+    @JoinColumn(name = "item_id")
+    private Item item;
 
-    @Column(name = "owner_id")
-    private Long ownerId;
+    @ManyToOne
+    @JoinColumn(name = "booker_id")
+    private User booker;
 
     @Enumerated
-    private Status status;
+    private StatusBooking status;
 
     @Column(name = "start_booking_time")
-    private Instant startBookingTime;
+    private LocalDateTime startBookingTime;
 
     @Column(name = "end_booking_time")
-    private Instant endBookingTime;
-
-    public enum Status {
-        WAITING, APPROVED, REJECTED
-    }
+    private LocalDateTime endBookingTime;
 }

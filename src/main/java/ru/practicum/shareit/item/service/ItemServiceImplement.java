@@ -2,18 +2,31 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dal.BookingRepository;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exception.custom.BadRequestException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
+import ru.practicum.shareit.item.dal.CommentRepository;
 import ru.practicum.shareit.item.dal.ItemRepository;
+import ru.practicum.shareit.item.dto.CreateCommentDto;
 import ru.practicum.shareit.item.dto.CreateItemDto;
+import ru.practicum.shareit.item.dto.GetCommentDto;
 import ru.practicum.shareit.item.dto.GetItemDto;
+import ru.practicum.shareit.item.dto.MapperCommentDto;
 import ru.practicum.shareit.item.dto.MapperItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dal.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,21 +37,55 @@ import java.util.Optional;
 public class ItemServiceImplement implements ItemService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final CommentRepository commentRepository;
+    private final BookingRepository bookingRepository;
     private final MapperItemDto mapperItemDto;
+    private final MapperCommentDto mapperCommentDto;
 
     @Override
     public GetItemDto getItemById(Long itemId, Long userId) {
         log.trace("Попытка получить предмет с itemId = {}, от пользователя userId = {}", itemId, userId);
-        throwNotFoundIfUserAbsent(userId);
+        getUserOrThrowNotFound(userId);
         Item item = getItemByIdOrThrowNotFound(itemId);
+
+        if (userId.equals(item.getOwnerId())) {
+            log.trace("Запрос был совершён владельцем");
+
+            log.trace("Заполняем ближайший букинг");
+            Pageable pageForNext = PageRequest.of(0, 1,
+                    Sort.by(Sort.Direction.ASC, "startBookingTime"));
+
+            Page<Booking> pageNext = bookingRepository.findNextBooking(userId, itemId, pageForNext);
+
+            if (pageNext.hasNext()) {
+                log.trace("Следующий букинг найден");
+                item.setNextBooking(pageNext.iterator().next());
+            }
+
+            log.trace("Заполняем последний букинг");
+            Pageable pageForLast = PageRequest.of(0, 1,
+                    Sort.by(Sort.Direction.DESC, "endBookingTime"));
+            Page<Booking> pageLast = bookingRepository.findLastBooking(userId, itemId, pageForLast);
+
+            if (pageLast.hasNext()) {
+                log.trace("Предыдущий букинг найден");
+                item.setLastBooking(pageLast.iterator().next());
+            }
+        }
+        log.trace("Запрос был совершён арендатором");
+
         return mapperItemDto.itemToGetDto(item);
     }
 
     @Override
     public List<GetItemDto> getItemsByUserId(Long userId) {
         log.trace("Попытка получить предметы пользователя userId = {}", userId);
-        throwNotFoundIfUserAbsent(userId);
+        getUserOrThrowNotFound(userId);
         List<Item> items = itemRepository.findByOwnerId(userId);
+
+        //TODO предыдущая и следующая аренда
+
+
         return items.stream()
                 .map(mapperItemDto::itemToGetDto)
                 .toList();
@@ -47,7 +94,7 @@ public class ItemServiceImplement implements ItemService {
     @Override
     public List<GetItemDto> getItemsByText(String text, Long userId) {
         log.trace("Попытка получить предметы через поиск \"{}\" от пользователя userId = {}", text, userId);
-        throwNotFoundIfUserAbsent(userId);
+        getUserOrThrowNotFound(userId);
         if (text.isBlank()) return List.of();
         List<Item> items = itemRepository.findByAvailableTrueAndNameContainingIgnoreCase(text);
         return items.stream()
@@ -59,7 +106,7 @@ public class ItemServiceImplement implements ItemService {
     @Transactional
     public GetItemDto createItem(CreateItemDto createItemDto, Long userId) {
         log.trace("Попытка создать предмет от пользователя userId = {}", userId);
-        throwNotFoundIfUserAbsent(userId);
+        getUserOrThrowNotFound(userId);
         Item item = mapperItemDto.createDtoToItem(createItemDto);
         item.setOwnerId(userId);
         itemRepository.save(item);
@@ -71,7 +118,7 @@ public class ItemServiceImplement implements ItemService {
     @Transactional
     public GetItemDto updateItem(UpdateItemDto updateItemDto, Long itemId, Long userId) {
         log.trace("Попытка создать предмет itemId = {}, от пользователя userId = {}", itemId, userId);
-        throwNotFoundIfUserAbsent(userId);
+        getUserOrThrowNotFound(userId);
         Item updatedItem = mapperItemDto.updateDtoToItem(updateItemDto);
 
         Item currentItem = getItemByIdOrThrowNotFound(itemId);
@@ -87,11 +134,36 @@ public class ItemServiceImplement implements ItemService {
     @Transactional
     public void deleteItemById(Long itemId, Long userId) {
         log.trace("Попытка удалить предмет itemId = {}, от пользователя userId = {}", itemId, userId);
-        throwNotFoundIfUserAbsent(userId);
+        getUserOrThrowNotFound(userId);
         Item currentItem = getItemByIdOrThrowNotFound(itemId);
         throwBadRequestIfUserNotOwnerOfItem(currentItem, userId);
         itemRepository.deleteById(itemId);
         log.trace("Успешно удален предмет с itemId = {}", itemId);
+    }
+
+    @Override
+    @Transactional
+    public GetCommentDto commentItem(CreateCommentDto createCommentDto, Long userId, Long itemId) {
+        log.trace("Попытка прокомментировать предмет {}, пользователем {}, текст {}",
+                itemId, userId, createCommentDto.getText());
+        getUserOrThrowNotFound(userId);
+
+        Sort sortAsc = Sort.by(Sort.Direction.ASC, "startBookingTime");
+        Optional<Booking> booking = bookingRepository.findByBookerIdAndItemId(userId, itemId, sortAsc);
+
+        if (booking.isEmpty() || booking.get().getEndBookingTime().isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Оставить отзыв можно только после окончания аренды");
+        }
+
+        Comment comment = mapperCommentDto.createDtoToComment(createCommentDto);
+        User author = getUserOrThrowNotFound(userId);
+        Item item = getItemByIdOrThrowNotFound(itemId);
+        comment.setItem(item);
+        comment.setAuthor(author);
+        commentRepository.save(comment);
+        log.trace("Комментарий успешно сохранён предмет {}, пользователь {}, текст {}",
+                itemId, userId, createCommentDto.getText());
+        return mapperCommentDto.commentToGetDto(comment);
     }
 
     private Item getItemByIdOrThrowNotFound(Long itemId) {
@@ -108,9 +180,10 @@ public class ItemServiceImplement implements ItemService {
         return optionalItem.get();
     }
 
-    private void throwNotFoundIfUserAbsent(Long userId) {
+    private User getUserOrThrowNotFound(Long userId) {
         log.trace("Проверка на существования пользователя с userId = {}", userId);
-        if (userRepository.findById(userId).isEmpty()) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
             throw NotFoundException.builder()
                     .setNameObject("Пользователь")
                     .setNameParameter("userId")
@@ -118,6 +191,7 @@ public class ItemServiceImplement implements ItemService {
                     .build();
         }
         log.trace("Пользователь с userId = {}, найден", userId);
+        return user.get();
     }
 
     private void throwBadRequestIfUserNotOwnerOfItem(Item item, Long userId) {

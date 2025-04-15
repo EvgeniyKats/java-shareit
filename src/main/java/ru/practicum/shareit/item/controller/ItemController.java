@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.item.dto.CreateCommentDto;
+import ru.practicum.shareit.item.dto.GetCommentDto;
+import ru.practicum.shareit.item.dto.GetItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.item.dto.CreateItemDto;
-import ru.practicum.shareit.item.dto.GetItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 
 import java.util.List;
@@ -28,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class ItemController {
-    private static final String HEADER_USER_ID = "X-Sharer-User-Id";
+    public static final String HEADER_USER_ID = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @GetMapping("/{itemId}")
@@ -67,6 +69,17 @@ public class ItemController {
         return ans;
     }
 
+    @PostMapping("/{itemId}/comment")
+    @ResponseStatus(HttpStatus.CREATED)
+    public GetCommentDto commentItem(@Valid @RequestBody CreateCommentDto createCommentDto,
+                                     @PathVariable Long itemId,
+                                     @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
+        log.info("Получен POST /items/{}/comment, userId = {}, text = {}", itemId, userId, createCommentDto.getText());
+        GetCommentDto ans = itemService.commentItem(createCommentDto, userId, itemId);
+        log.info("Комментарий успешно добавлен для предмета {}", itemId);
+        return ans;
+    }
+
     @PatchMapping("/{itemId}")
     public GetItemDto updateItem(@Min(1) @PathVariable Long itemId,
                                  @Valid @RequestBody UpdateItemDto updateItemDto,
@@ -76,7 +89,7 @@ public class ItemController {
         log.info("Предмет с itemId = {}, успешно обновлен, его параметры owner = {}, name = {}, description = {}, "
                         + "available = {}",
                 itemId,
-                ans.getOwner(),
+                ans.getOwnerId(),
                 ans.getName(),
                 ans.getDescription(),
                 ans.getAvailable());

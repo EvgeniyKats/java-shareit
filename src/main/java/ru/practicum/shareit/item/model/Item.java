@@ -5,10 +5,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import ru.practicum.shareit.booking.model.Booking;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -32,6 +38,15 @@ public class Item {
 
     @Column(name = "available")
     private Boolean available;
+
+    @OneToMany(mappedBy = "item")
+    private List<Comment> comments = new ArrayList<>();
+
+    @Transient
+    private Booking lastBooking;
+
+    @Transient
+    private Booking nextBooking;
 
     public void updateFromAnotherItem(Item updatedItem) {
         if (updatedItem.hasName()) name = updatedItem.getName();
