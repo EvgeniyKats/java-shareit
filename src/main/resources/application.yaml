@@ -1,3 +1,7 @@
+hibernate:
+  show_sql: FALSE
+  jdbc:
+    time_zone: UTC
 logging:
   level:
     org:
@@ -17,6 +21,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/shareit
     username: shareit
   jpa:
+    show-sql: FALSE
     hibernate:
       ddl-auto: none
     properties:

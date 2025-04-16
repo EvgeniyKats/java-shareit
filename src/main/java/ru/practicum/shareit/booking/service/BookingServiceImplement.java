@@ -54,17 +54,17 @@ public class BookingServiceImplement implements BookingService {
         Sort sortDescByStartBookingTime = Sort.by(Sort.Direction.DESC, "startBookingTime");
 
         switch (state) {
-            case ALL -> bookings = bookingRepository.findByBooker_id(bookerId, sortDescByStartBookingTime);
+            case ALL -> bookings = bookingRepository.findByBookerId(bookerId, sortDescByStartBookingTime);
             case PAST -> bookings = bookingRepository
-                    .findByBooker_IdAndStartBookingTimeBefore(bookerId, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findByBookerIdAndStartBookingTimeBefore(bookerId, LocalDateTime.now(), sortDescByStartBookingTime);
             case FUTURE -> bookings = bookingRepository
-                    .findByBooker_IdAndEndBookingTimeAfter(bookerId, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findByBookerIdAndEndBookingTimeAfter(bookerId, LocalDateTime.now(), sortDescByStartBookingTime);
             case CURRENT -> bookings = bookingRepository
-                    .findByBookerIdCurrentBookings(bookerId, sortDescByStartBookingTime);
+                    .findCurrentBookingsForBooker(bookerId, sortDescByStartBookingTime);
             case WAITING -> bookings = bookingRepository
-                    .findByBookerAndStatus(bookerId, StatusBooking.WAITING.ordinal(), sortDescByStartBookingTime);
+                    .findByBookerIdAndStatus(bookerId, StatusBooking.WAITING, sortDescByStartBookingTime);
             case REJECTED -> bookings = bookingRepository
-                    .findByBookerAndStatus(bookerId, StatusBooking.REJECTED.ordinal(), sortDescByStartBookingTime);
+                    .findByBookerIdAndStatus(bookerId, StatusBooking.REJECTED, sortDescByStartBookingTime);
             default -> {
                 log.warn("Неизвестный параметр state = {}, booker", state);
                 bookings = new ArrayList<>();
@@ -87,17 +87,17 @@ public class BookingServiceImplement implements BookingService {
         Sort sortDescByStartBookingTime = Sort.by(Sort.Direction.DESC, "startBookingTime");
 
         switch (state) {
-            case ALL -> bookings = bookingRepository.findByOwner(ownerId, sortDescByStartBookingTime);
+            case ALL -> bookings = bookingRepository.findAllBookingsForOwner(ownerId, sortDescByStartBookingTime);
             case PAST -> bookings = bookingRepository
-                    .findByOwner_IdAndStartBookingTimeBefore(ownerId, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findPastBookingsForOwner(ownerId, LocalDateTime.now(), sortDescByStartBookingTime);
             case FUTURE -> bookings = bookingRepository
-                    .findByOwner_IdAndEndBookingTimeAfter(ownerId, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findFutureBookingsForOwner(ownerId, LocalDateTime.now(), sortDescByStartBookingTime);
             case CURRENT -> bookings = bookingRepository
-                    .findByOwnerIdCurrentBookings(ownerId, sortDescByStartBookingTime);
+                    .findCurrentBookingsForOwner(ownerId, sortDescByStartBookingTime);
             case WAITING -> bookings = bookingRepository
-                    .findByOwnerAndStatus(ownerId, StatusBooking.WAITING.ordinal(), sortDescByStartBookingTime);
+                    .findByStatusForOwner(ownerId, StatusBooking.WAITING, sortDescByStartBookingTime);
             case REJECTED -> bookings = bookingRepository
-                    .findByOwnerAndStatus(ownerId, StatusBooking.REJECTED.ordinal(), sortDescByStartBookingTime);
+                    .findByStatusForOwner(ownerId, StatusBooking.REJECTED, sortDescByStartBookingTime);
             default -> {
                 log.warn("Неизвестный параметр state = {}, owner", state);
                 bookings = new ArrayList<>();

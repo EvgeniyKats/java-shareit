@@ -30,9 +30,8 @@ public class Comment {
     @JoinColumn(name = "author_id")
     private User author;
 
-    @ManyToOne
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @Column(name = "item_id")
+    private Long itemId;
 
     @Column(name = "text")
     private String text;

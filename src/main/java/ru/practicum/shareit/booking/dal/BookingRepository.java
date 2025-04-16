@@ -56,45 +56,47 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<BookingStartEnd> findLastBookingTime(Long ownerId, Long itemId);
 
     // Все букинги
-    List<Booking> findByBooker_id(Long bookerId, Sort sort);
+    List<Booking> findByBookerId(Long bookerId, Sort sort);
 
     @Query(value = "SELECT b " +
-            "FROM Booking b " +
-            "WHERE b.booker.id = ?1")
-    List<Booking> findByOwner(Long ownerId, Sort sort);
+            "FROM Booking AS b " +
+            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1)")
+    List<Booking> findAllBookingsForOwner(Long ownerId, Sort sort);
 
     // Прошедшие букинги
-    List<Booking> findByBooker_IdAndStartBookingTimeBefore(Long bookerId, LocalDateTime time, Sort sort);
+    List<Booking> findByBookerIdAndStartBookingTimeBefore(Long bookerId, LocalDateTime time, Sort sort);
 
     @Query(value = "SELECT b " +
-            "FROM Booking b " +
-            "WHERE b.booker.id = ?1 AND b.startBookingTime < ?2")
-    List<Booking> findByOwner_IdAndStartBookingTimeBefore(Long ownerId, LocalDateTime time, Sort sort);
+            "FROM Booking AS b " +
+            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.startBookingTime < ?2")
+    List<Booking> findPastBookingsForOwner(Long ownerId, LocalDateTime time, Sort sort);
 
     // Будущие букинги
-    List<Booking> findByBooker_IdAndEndBookingTimeAfter(Long bookerId, LocalDateTime time, Sort sort);
+    List<Booking> findByBookerIdAndEndBookingTimeAfter(Long bookerId, LocalDateTime time, Sort sort);
 
     @Query(value = "SELECT b " +
-            "FROM Booking b " +
-            "WHERE b.booker.id = ?1 AND b.startBookingTime > ?2")
-    List<Booking> findByOwner_IdAndEndBookingTimeAfter(Long ownerId, LocalDateTime time, Sort sort);
+            "FROM Booking AS b " +
+            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.endBookingTime > ?2")
+    List<Booking> findFutureBookingsForOwner(Long ownerId, LocalDateTime time, Sort sort);
 
     // Текущие букинги
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.booker.id = ?1 AND b.startBookingTime < CURRENT_TIMESTAMP AND b.endBookingTime > CURRENT_TIMESTAMP")
-    List<Booking> findByBookerIdCurrentBookings(Long bookerId, Sort sort);
+    List<Booking> findCurrentBookingsForBooker(Long bookerId, Sort sort);
 
-    @Query("SELECT b " +
-            "FROM Booking b " +
-            "WHERE b.item.ownerId = ?1 AND b.startBookingTime < CURRENT_TIMESTAMP AND b.endBookingTime > CURRENT_TIMESTAMP")
-    List<Booking> findByOwnerIdCurrentBookings(Long ownerId, Sort sort);
+    @Query(value = "SELECT b " +
+            "FROM Booking AS b " +
+            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) " +
+            "AND b.startBookingTime < CURRENT_TIMESTAMP " +
+            "AND b.endBookingTime > CURRENT_TIMESTAMP")
+    List<Booking> findCurrentBookingsForOwner(Long ownerId, Sort sort);
 
     // Букинги по статусу
-    List<Booking> findByBookerAndStatus(Long bookerId, Integer statusOrdinal, Sort sort);
+    List<Booking> findByBookerIdAndStatus(Long bookerId, StatusBooking status, Sort sort);
 
     @Query(value = "SELECT b " +
             "FROM Booking b " +
-            "WHERE b.booker.id = ?1 AND b.status.ordinal() = ?2")
-    List<Booking> findByOwnerAndStatus(Long ownerId, Integer statusOrdinal, Sort sort);
+            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.status = ?2")
+    List<Booking> findByStatusForOwner(Long ownerId, StatusBooking status, Sort sort);
 }

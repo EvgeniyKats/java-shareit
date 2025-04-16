@@ -136,8 +136,8 @@ public class ItemServiceImplement implements ItemService {
 
         Comment comment = mapperCommentDto.createDtoToComment(createCommentDto);
         User author = getUserOrThrowNotFound(userId);
-        Item item = getItemByIdOrThrowNotFound(itemId);
-        comment.setItem(item);
+        getItemByIdOrThrowNotFound(itemId);
+        comment.setItemId(itemId);
         comment.setAuthor(author);
         commentRepository.save(comment);
         log.trace("Комментарий успешно сохранён предмет {}, пользователь {}, текст {}",

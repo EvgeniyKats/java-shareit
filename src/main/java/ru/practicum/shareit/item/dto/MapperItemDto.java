@@ -21,8 +21,8 @@ public interface MapperItemDto {
             getCommentDto.setId(comment.getId());
         }
 
-        if (comment.getItem() != null && comment.getItem().getId() != null) {
-            getCommentDto.setItemId(comment.getItem().getId());
+        if (comment.getItemId() != null) {
+            getCommentDto.setItemId(comment.getItemId());
         }
 
         if (comment.getText() != null) {

@@ -39,7 +39,7 @@ public class Item {
     @Column(name = "available")
     private Boolean available;
 
-    @OneToMany(mappedBy = "item")
+    @OneToMany(mappedBy = "itemId")
     private List<Comment> comments = new ArrayList<>();
 
     @Transient
