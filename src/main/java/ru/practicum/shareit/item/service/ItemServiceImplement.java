@@ -2,14 +2,12 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dal.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStartEnd;
 import ru.practicum.shareit.exception.custom.BadRequestException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
 import ru.practicum.shareit.item.dal.CommentRepository;
@@ -49,30 +47,10 @@ public class ItemServiceImplement implements ItemService {
         Item item = getItemByIdOrThrowNotFound(itemId);
 
         if (userId.equals(item.getOwnerId())) {
-            log.trace("Запрос был совершён владельцем");
-
-            log.trace("Заполняем ближайший букинг");
-            Pageable pageForNext = PageRequest.of(0, 1,
-                    Sort.by(Sort.Direction.ASC, "startBookingTime"));
-
-            Page<Booking> pageNext = bookingRepository.findNextBooking(userId, itemId, pageForNext);
-
-            if (pageNext.hasNext()) {
-                log.trace("Следующий букинг найден");
-                item.setNextBooking(pageNext.iterator().next());
-            }
-
-            log.trace("Заполняем последний букинг");
-            Pageable pageForLast = PageRequest.of(0, 1,
-                    Sort.by(Sort.Direction.DESC, "endBookingTime"));
-            Page<Booking> pageLast = bookingRepository.findLastBooking(userId, itemId, pageForLast);
-
-            if (pageLast.hasNext()) {
-                log.trace("Предыдущий букинг найден");
-                item.setLastBooking(pageLast.iterator().next());
-            }
+            appendLastAndNextBookingForOwner(List.of(item));
+        } else {
+            log.trace("Запрос был совершён арендатором");
         }
-        log.trace("Запрос был совершён арендатором");
 
         return mapperItemDto.itemToGetDto(item);
     }
@@ -83,8 +61,9 @@ public class ItemServiceImplement implements ItemService {
         getUserOrThrowNotFound(userId);
         List<Item> items = itemRepository.findByOwnerId(userId);
 
-        //TODO предыдущая и следующая аренда
-
+        if (!items.isEmpty() && items.getFirst().getOwnerId().equals(userId)) {
+            appendLastAndNextBookingForOwner(items);
+        }
 
         return items.stream()
                 .map(mapperItemDto::itemToGetDto)
@@ -164,6 +143,30 @@ public class ItemServiceImplement implements ItemService {
         log.trace("Комментарий успешно сохранён предмет {}, пользователь {}, текст {}",
                 itemId, userId, createCommentDto.getText());
         return mapperCommentDto.commentToGetDto(comment);
+    }
+
+    private void appendLastAndNextBookingForOwner(List<Item> items) {
+        log.trace("Запрос был совершён владельцем");
+        Long userId = items.getFirst().getOwnerId();
+        for (Item item : items) {
+            log.trace("Заполняем ближайший букинг");
+            Optional<BookingStartEnd> nextBookingTime = bookingRepository.findNextBookingTime(userId, item.getId());
+            if (nextBookingTime.isPresent()) {
+                log.trace("Ближайший букинг найден");
+                item.setNextBookingTime(nextBookingTime.get());
+            } else {
+                log.trace("Ближайший букинг не обнаружен");
+            }
+
+            log.trace("Заполняем последний букинг");
+            Optional<BookingStartEnd> lastBookingTime = bookingRepository.findLastBookingTime(userId, item.getId());
+            if (lastBookingTime.isPresent()) {
+                log.trace("Последний букинг найден");
+                item.setLastBookingTime(lastBookingTime.get());
+            } else {
+                log.trace("Последний букинг не обнаружен");
+            }
+        }
     }
 
     private Item getItemByIdOrThrowNotFound(Long itemId) {

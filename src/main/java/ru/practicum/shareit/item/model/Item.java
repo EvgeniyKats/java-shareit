@@ -11,7 +11,7 @@ import jakarta.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStartEnd;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,10 +43,10 @@ public class Item {
     private List<Comment> comments = new ArrayList<>();
 
     @Transient
-    private Booking lastBooking;
+    private BookingStartEnd lastBookingTime;
 
     @Transient
-    private Booking nextBooking;
+    private BookingStartEnd nextBookingTime;
 
     public void updateFromAnotherItem(Item updatedItem) {
         if (updatedItem.hasName()) name = updatedItem.getName();
