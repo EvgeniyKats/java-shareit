@@ -17,9 +17,9 @@ logging:
 spring:
   datasource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5433/shareit
-    username: dbuser
-    password: 12345
+    password: shareit
+    url: jdbc:postgresql://localhost:5432/shareit
+    username: shareit
   jpa:
     show-sql: FALSE
     hibernate:
