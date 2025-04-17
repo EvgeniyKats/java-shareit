@@ -12,9 +12,9 @@ import lombok.Setter;
 public class CreateUserDto {
     @NotNull
     @Email
-    String email;
+    private String email;
 
     @NotBlank
     @Size(max = 512)
-    String name;
+    private String name;
 }

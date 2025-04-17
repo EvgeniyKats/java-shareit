@@ -3,8 +3,8 @@ package ru.practicum.shareit.booking.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.dto.GetItemDto;
+import ru.practicum.shareit.user.dto.GetUserDto;
 
 import java.time.LocalDateTime;
 
@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Setter
 public class GetBookingDto {
     private Long id;
-    private Item item;
-    private User booker;
+    private GetItemDto item;
+    private GetUserDto booker;
     private StatusBookingDto status;
     @JsonProperty(value = "start")
     private LocalDateTime startBookingTime;
