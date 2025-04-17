@@ -160,7 +160,6 @@ public class BookingServiceImplement implements BookingService {
             booking.setStatus(StatusBooking.REJECTED);
         }
 
-        bookingRepository.save(booking);
         log.info("Текущий статус букинга bookingId={}, status={}", booking.getId(), booking.getStatus());
         return mapperBookingDto.bookingToGetDto(booking);
     }

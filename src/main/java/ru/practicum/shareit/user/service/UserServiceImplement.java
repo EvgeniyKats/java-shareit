@@ -62,7 +62,6 @@ public class UserServiceImplement implements UserService {
         }
 
         currentUser.updateFromAnotherUser(updatedUser);
-        userRepository.save(currentUser);
 
         log.trace("Пользователь с id = {}, успешно обновлен", id);
         return mapperUserDto.userToGetDto(currentUser);

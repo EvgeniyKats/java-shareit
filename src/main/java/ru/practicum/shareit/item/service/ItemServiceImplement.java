@@ -104,9 +104,8 @@ public class ItemServiceImplement implements ItemService {
         throwBadRequestIfUserNotOwnerOfItem(currentItem, userId);
 
         currentItem.updateFromAnotherItem(updatedItem);
-        Item ans = itemRepository.save(currentItem);
         log.trace("Предмет с itemId = {}, успешно обновлен", itemId);
-        return mapperItemDto.itemToGetDto(ans);
+        return mapperItemDto.itemToGetDto(currentItem);
     }
 
     @Override
