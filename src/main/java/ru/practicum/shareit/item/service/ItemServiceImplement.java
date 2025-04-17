@@ -25,7 +25,10 @@ import ru.practicum.shareit.user.dal.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -47,7 +50,25 @@ public class ItemServiceImplement implements ItemService {
         Item item = getItemByIdOrThrowNotFound(itemId);
 
         if (userId.equals(item.getOwnerId())) {
-            appendLastAndNextBookingForOwner(List.of(item));
+            log.trace("Запрос был совершён владельцем");
+
+            log.trace("Заполняем ближайший букинг");
+            Optional<BookingStartEnd> nextBookingTime = bookingRepository.findNextBookingTime(userId, item.getId());
+            if (nextBookingTime.isPresent()) {
+                log.trace("Ближайший букинг найден");
+                item.setNextBookingTime(nextBookingTime.get());
+            } else {
+                log.trace("Ближайший букинг не обнаружен");
+            }
+
+            log.trace("Заполняем последний букинг");
+            Optional<BookingStartEnd> lastBookingTime = bookingRepository.findLastBookingTime(userId, item.getId());
+            if (lastBookingTime.isPresent()) {
+                log.trace("Последний букинг найден");
+                item.setLastBookingTime(lastBookingTime.get());
+            } else {
+                log.trace("Последний букинг не обнаружен");
+            }
         } else {
             log.trace("Запрос был совершён арендатором");
         }
@@ -62,7 +83,13 @@ public class ItemServiceImplement implements ItemService {
         List<Item> items = itemRepository.findByOwnerId(userId);
 
         if (!items.isEmpty() && items.getFirst().getOwnerId().equals(userId)) {
-            appendLastAndNextBookingForOwner(items);
+            Map<Long, Item> itemById = new HashMap<>();
+
+            for (Item item : items) {
+                itemById.put(item.getId(), item);
+            }
+
+            appendLastAndNextBookingForOwner(itemById, userId);
         }
 
         return items.stream()
@@ -144,27 +171,24 @@ public class ItemServiceImplement implements ItemService {
         return mapperCommentDto.commentToGetDto(comment);
     }
 
-    private void appendLastAndNextBookingForOwner(List<Item> items) {
-        log.trace("Запрос был совершён владельцем");
-        Long userId = items.getFirst().getOwnerId();
-        for (Item item : items) {
-            log.trace("Заполняем ближайший букинг");
-            Optional<BookingStartEnd> nextBookingTime = bookingRepository.findNextBookingTime(userId, item.getId());
-            if (nextBookingTime.isPresent()) {
-                log.trace("Ближайший букинг найден");
-                item.setNextBookingTime(nextBookingTime.get());
-            } else {
-                log.trace("Ближайший букинг не обнаружен");
-            }
+    /**
+     * @param itemById мапа - itemId:item
+     * @param ownerId  владелец предмета - id
+     */
+    private void appendLastAndNextBookingForOwner(Map<Long, Item> itemById, Long ownerId) {
+        log.trace("Запрос был совершён владельцем для множества items");
+        List<Long> itemIds = new ArrayList<>(itemById.keySet());
 
-            log.trace("Заполняем последний букинг");
-            Optional<BookingStartEnd> lastBookingTime = bookingRepository.findLastBookingTime(userId, item.getId());
-            if (lastBookingTime.isPresent()) {
-                log.trace("Последний букинг найден");
-                item.setLastBookingTime(lastBookingTime.get());
-            } else {
-                log.trace("Последний букинг не обнаружен");
-            }
+        log.trace("Заполняем последний букинг для множества items");
+        List<BookingStartEnd> lastBookings = bookingRepository.findLastBookingTimeForIds(ownerId, itemIds);
+        for (BookingStartEnd bookingTime : lastBookings) {
+            itemById.get(bookingTime.getItemId()).setLastBookingTime(bookingTime);
+        }
+
+        log.trace("Заполняем ближайший букинг для множества items");
+        List<BookingStartEnd> nextBookings = bookingRepository.findNextBookingTimeForIds(ownerId, itemIds);
+        for (BookingStartEnd bookingTime : nextBookings) {
+            itemById.get(bookingTime.getItemId()).setNextBookingTime(bookingTime);
         }
     }
 

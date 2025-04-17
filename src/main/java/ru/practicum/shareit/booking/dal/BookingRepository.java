@@ -22,7 +22,38 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findByBookerIdAndItemId(Long bookerId, Long itemId, Sort sort);
 
     @Query(value = """
+            SELECT b.item_id,
+                   MAX(b.start_booking_time) AS start_booking_time,
+                   MAX(b.end_booking_time) AS end_booking_time
+            FROM booking AS b
+            WHERE b.item_id IN ?2
+              AND b.item_id IN (SELECT i.id
+                               FROM item AS i
+                               WHERE i.id IN ?2 AND i.owner_id = ?1)
+              AND b.start_booking_time < CURRENT_TIMESTAMP
+              AND b.status = 1
+            GROUP BY b.item_id
+            """, nativeQuery = true)
+    List<BookingStartEnd> findLastBookingTimeForIds(Long ownerId, List<Long> itemIds);
+
+    @Query(value = """
+            SELECT b.item_id,
+                   MIN(b.start_booking_time) AS start_booking_time,
+                   MIN(b.end_booking_time) AS end_booking_time
+            FROM booking AS b
+            WHERE b.item_id IN ?2
+              AND b.item_id IN (SELECT i.id
+                               FROM item AS i
+                               WHERE i.id IN ?2 AND i.owner_id = ?1)
+              AND b.start_booking_time > CURRENT_TIMESTAMP
+              AND b.status = 1
+            GROUP BY b.item_id
+            """, nativeQuery = true)
+    List<BookingStartEnd> findNextBookingTimeForIds(Long ownerId, List<Long> itemIds);
+
+    @Query(value = """
             SELECT b.id,
+                   b.item_id,
                    b.start_booking_time,
                    b.end_booking_time
             FROM booking AS b
@@ -40,6 +71,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query(value = """
             SELECT b.id,
+                   b.item_id,
                    b.start_booking_time,
                    b.end_booking_time
             FROM booking AS b
