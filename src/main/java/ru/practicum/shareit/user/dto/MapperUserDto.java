@@ -1,30 +1,15 @@
 package ru.practicum.shareit.user.dto;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import ru.practicum.shareit.user.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import ru.practicum.shareit.user.model.User;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class MapperUserDto {
-    public static User createDtoToUser(CreateUserDto createUserDto) {
-        return User.builder()
-                .email(createUserDto.getEmail())
-                .name(createUserDto.getName())
-                .build();
-    }
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface MapperUserDto {
 
-    public static User updateDtoToUser(UpdateUserDto updateUserDto) {
-        return User.builder()
-                .email(updateUserDto.getEmail())
-                .name(updateUserDto.getName())
-                .build();
-    }
+    User createDtoToUser(CreateUserDto createUserDto);
 
-    public static GetUserDto userToGetDto(User user) {
-        return GetUserDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .name(user.getName())
-                .build();
-    }
+    User updateDtoToUser(UpdateUserDto updateUserDto);
+
+    GetUserDto userToGetDto(User user);
 }

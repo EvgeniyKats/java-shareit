@@ -1,16 +1,24 @@
 package ru.practicum.shareit.item.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import ru.practicum.shareit.booking.model.BookingStartEnd;
 
-@Data
-@Builder
+import java.util.List;
+
+@Getter
+@Setter
 public class GetItemDto {
     private Long id;
-    private Long owner;
+    @JsonProperty(value = "owner")
+    private Long ownerId;
     private String name;
     private String description;
-    @JsonProperty(value = "available")
-    private Boolean isAvailable;
+    private Boolean available;
+    @JsonProperty(value = "lastBooking")
+    private BookingStartEnd lastBookingTime;
+    @JsonProperty(value = "nextBooking")
+    private BookingStartEnd nextBookingTime;
+    private List<GetCommentDto> comments;
 }
