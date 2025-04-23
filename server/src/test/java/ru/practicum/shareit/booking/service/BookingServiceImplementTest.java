@@ -53,7 +53,7 @@ class BookingServiceImplementTest {
         assertNotNull(getBookingDto.getId());
         assertEquals(createBookingDto.getStartBookingTime(), getBookingDto.getStartBookingTime());
         assertEquals(createBookingDto.getEndBookingTime(), getBookingDto.getEndBookingTime());
-        assertEquals(createBookingDto.getItemId(), getBookingDto.getId());
+        assertEquals(createBookingDto.getItemId(), itemId);
     }
 
     @Test
@@ -131,7 +131,7 @@ class BookingServiceImplementTest {
         assertNotNull(getBookingDto.getId());
         assertEquals(createBookingDto.getStartBookingTime(), getBookingDto.getStartBookingTime());
         assertEquals(createBookingDto.getEndBookingTime(), getBookingDto.getEndBookingTime());
-        assertEquals(createBookingDto.getItemId(), getBookingDto.getId());
+        assertEquals(createBookingDto.getItemId(), itemId);
     }
 
     @Test
