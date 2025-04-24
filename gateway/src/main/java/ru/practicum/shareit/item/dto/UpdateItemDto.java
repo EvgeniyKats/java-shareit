@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.shareit.exception.custom.IncorrectParameterException;
+import ru.practicum.shareit.exception.custom.BadRequestException;
 
 @Getter
 @Setter
@@ -20,11 +20,7 @@ public class UpdateItemDto {
     public void setName(String name) {
         if (name != null) {
             this.name = name.trim();
-            if (name.isBlank()) throw new IncorrectParameterException("Имя не может быть пустым");
+            if (name.isBlank()) throw new BadRequestException("Название не может быть пустым");
         }
-    }
-
-    public void setDescription(String description) {
-        if (description != null) this.description = description.trim();
     }
 }

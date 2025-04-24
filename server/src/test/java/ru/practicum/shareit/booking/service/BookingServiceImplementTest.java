@@ -12,6 +12,7 @@ import ru.practicum.shareit.booking.dto.GetBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.StatusBooking;
 import ru.practicum.shareit.exception.custom.BadRequestException;
+import ru.practicum.shareit.exception.custom.ForbiddenException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.service.ItemService;
@@ -232,6 +233,23 @@ class BookingServiceImplementTest {
         bookingOptional = bookingRepository.findById(bookingDto.getId());
         assertTrue(bookingOptional.isPresent());
         assertEquals(StatusBooking.APPROVED.name(), bookingOptional.get().getStatus().name());
+    }
+
+    @Test
+    void makeDecisionForBookingByFakeOwner() {
+        List<CreateUserDto> users = createUserDtos(2);
+        CreateUserDto ownerCreate = users.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+        CreateItemDto itemCreate = createItemDtos(1).getFirst();
+        long itemId = itemService.createItem(itemCreate, ownerId).getId();
+
+        CreateUserDto bookerCreate = users.getLast();
+        long bookerId = userService.createUser(bookerCreate).getId();
+        CreateBookingDto createBookingDto = createBookingDtos(1).getFirst();
+        createBookingDto.setItemId(itemId);
+        long bookingId = bookingService.createBooking(createBookingDto, bookerId).getId();
+
+        assertThrows(ForbiddenException.class, () -> bookingService.makeDecisionForBooking(bookingId, true, bookerId));
     }
 
     @Test

@@ -52,7 +52,6 @@ public class BookingClient extends BaseClient {
     public ResponseEntity<Object> makeDecisionForBooking(long bookingId, long userId, boolean approved) {
         String path = "/" + bookingId + "?approved={approved}";
         Map<String, Object> parameters = Map.of("approved", approved);
-        System.out.println(path);
         return patch(path, userId, parameters);
     }
 }

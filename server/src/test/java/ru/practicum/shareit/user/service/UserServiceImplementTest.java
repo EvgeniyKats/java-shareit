@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.custom.DuplicateException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
 import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.dto.GetUserDto;
@@ -44,6 +45,14 @@ class UserServiceImplementTest {
         assertNotNull(getUserDto.getId());
         assertEquals(userCreate.getName(), getUserDto.getName());
         assertEquals(userCreate.getEmail(), getUserDto.getEmail());
+    }
+
+    @Test
+    void createUserThrowsDuplicate() {
+        List<CreateUserDto> usersCreate = createUserDtos(1);
+        CreateUserDto userCreate = usersCreate.getFirst();
+        userService.createUser(userCreate);
+        assertThrows(DuplicateException.class, () -> userService.createUser(userCreate));
     }
 
     @Test

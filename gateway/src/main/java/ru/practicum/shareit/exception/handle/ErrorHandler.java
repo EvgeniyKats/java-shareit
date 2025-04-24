@@ -9,20 +9,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.booking.controller.BookingController;
 
-import ru.practicum.shareit.exception.custom.IncorrectParameterException;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.user.controller.UserController;
 
 @Slf4j
 @RestControllerAdvice(assignableTypes = {UserController.class, ItemController.class, BookingController.class})
 public class ErrorHandler {
-
-    @ExceptionHandler(IncorrectParameterException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleIncorrectParameter(final IncorrectParameterException e) {
-        log.warn(e.getMessage());
-        return new ErrorResponse(e.getMessage());
-    }
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

@@ -10,7 +10,6 @@ import ru.practicum.shareit.booking.controller.BookingController;
 import ru.practicum.shareit.exception.custom.BadRequestException;
 import ru.practicum.shareit.exception.custom.DuplicateException;
 import ru.practicum.shareit.exception.custom.ForbiddenException;
-import ru.practicum.shareit.exception.custom.IncorrectParameterException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.user.controller.UserController;
@@ -18,13 +17,6 @@ import ru.practicum.shareit.user.controller.UserController;
 @Slf4j
 @RestControllerAdvice(assignableTypes = {UserController.class, ItemController.class, BookingController.class})
 public class ErrorHandler {
-
-    @ExceptionHandler(IncorrectParameterException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleIncorrectParameter(final IncorrectParameterException e) {
-        log.warn(e.getMessage());
-        return new ErrorResponse(e.getMessage());
-    }
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
