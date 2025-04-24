@@ -11,6 +11,8 @@ import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.StatusBooking;
+import ru.practicum.shareit.exception.custom.BadRequestException;
+import ru.practicum.shareit.exception.custom.NotFoundException;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.dto.CreateUserDto;
@@ -230,5 +232,68 @@ class BookingServiceImplementTest {
         bookingOptional = bookingRepository.findById(bookingDto.getId());
         assertTrue(bookingOptional.isPresent());
         assertEquals(StatusBooking.APPROVED.name(), bookingOptional.get().getStatus().name());
+    }
+
+    @Test
+    void testItemNotFound() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        CreateItemDto itemCreate = createItemDtos(1).getFirst();
+        long itemId = itemService.createItem(itemCreate, ownerId).getId();
+
+        CreateUserDto bookerCreate = usersCreate.getLast();
+        long bookerId = userService.createUser(bookerCreate).getId();
+
+        long fakeItemId = -1L;
+
+        CreateBookingDto createBookingDto1 = createBookingDtos(1).getFirst();
+        createBookingDto1.setItemId(fakeItemId);
+        assertThrows(NotFoundException.class, () -> bookingService.createBooking(createBookingDto1, bookerId));
+    }
+
+    @Test
+    void testUserNotFound() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        CreateItemDto itemCreate = createItemDtos(1).getFirst();
+        long itemId = itemService.createItem(itemCreate, ownerId).getId();
+
+        CreateUserDto bookerCreate = usersCreate.getLast();
+        long bookerId = userService.createUser(bookerCreate).getId();
+
+        long fakeBookerId = -1L;
+
+        CreateBookingDto createBookingDto1 = createBookingDtos(1).getFirst();
+        createBookingDto1.setItemId(itemId);
+        assertThrows(NotFoundException.class, () -> bookingService.createBooking(createBookingDto1, fakeBookerId));
+    }
+
+    @Test
+    void testBookingNotFound() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        long fakeBookingId = -1L;
+
+        assertThrows(NotFoundException.class, () -> bookingService.getBookingById(fakeBookingId, ownerId));
+    }
+
+    @Test
+    void testOwnerWantBookItem() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        CreateItemDto itemCreate = createItemDtos(1).getFirst();
+        long itemId = itemService.createItem(itemCreate, ownerId).getId();
+
+        CreateBookingDto createBookingDto1 = createBookingDtos(1).getFirst();
+        createBookingDto1.setItemId(itemId);
+        assertThrows(BadRequestException.class, () -> bookingService.createBooking(createBookingDto1, ownerId));
     }
 }

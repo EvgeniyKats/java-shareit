@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
@@ -120,7 +121,7 @@ class BookingControllerTest {
         createBookingDto.setEndBookingTime(LocalDateTime.now().plusDays(1));
         createBookingDto.setItemId(1L);
 
-        mockMvc.perform(post(path)
+        ResultActions actions = mockMvc.perform(post(path)
                         .content(objectMapper.writeValueAsString(createBookingDto))
                         .contentType(MediaType.APPLICATION_JSON)
                 .header(ItemController.HEADER_USER_ID, userId))

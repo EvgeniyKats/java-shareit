@@ -117,17 +117,7 @@ public class ItemServiceImplement implements ItemService {
         getUserOrThrowNotFound(userId);
 
         if (createItemDto.getRequestId() != null) {
-            Optional<ItemRequest> itemRequest = itemRequestRepository.findById(createItemDto.getRequestId());
-            if (itemRequest.isEmpty()) {
-                throw NotFoundException.builder()
-                        .setNameObject("itemRequest")
-                        .setNameParameter("id")
-                        .setValueParameter(createItemDto.getRequestId())
-                        .build();
-            }
-            if (itemRequest.get().getOwnerId().equals(userId)) {
-                throw new BadRequestException("Вещь не может быть предложена владельцу");
-            }
+            validateOfferToItemRequest(createItemDto.getRequestId(), userId);
         }
 
         Item item = mapperItemDto.createDtoToItem(createItemDto);
@@ -144,17 +134,7 @@ public class ItemServiceImplement implements ItemService {
         getUserOrThrowNotFound(userId);
 
         if (updateItemDto.getRequestId() != null) {
-            Optional<ItemRequest> itemRequest = itemRequestRepository.findById(updateItemDto.getRequestId());
-            if (itemRequest.isEmpty()) {
-                throw NotFoundException.builder()
-                        .setNameObject("itemRequest")
-                        .setNameParameter("id")
-                        .setValueParameter(updateItemDto.getRequestId())
-                        .build();
-            }
-            if (updateItemDto.getRequestId().equals(itemId) || itemRequest.get().getOwnerId().equals(userId)) {
-                throw new BadRequestException("Вещь не может быть предложена владельцу");
-            }
+            validateOfferToItemRequest(updateItemDto.getRequestId(), userId);
         }
 
         Item updatedItem = mapperItemDto.updateDtoToItem(updateItemDto);
@@ -261,5 +241,19 @@ public class ItemServiceImplement implements ItemService {
                                           + " не владеет предметом itemId = " + item.getId());
         }
         log.trace("Владение предметом itemId = {} подтверждено", item.getId());
+    }
+
+    private void validateOfferToItemRequest(Long requestId, Long itemOwnerId) {
+        Optional<ItemRequest> itemRequest = itemRequestRepository.findById(requestId);
+        if (itemRequest.isEmpty()) {
+            throw NotFoundException.builder()
+                    .setNameObject("itemRequest")
+                    .setNameParameter("id")
+                    .setValueParameter(requestId)
+                    .build();
+        }
+        if (itemRequest.get().getOwnerId().equals(itemOwnerId)) {
+            throw new BadRequestException("Вещь не может быть предложена владельцу");
+        }
     }
 }

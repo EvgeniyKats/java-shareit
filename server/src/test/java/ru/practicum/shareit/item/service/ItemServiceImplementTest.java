@@ -5,16 +5,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.exception.custom.BadRequestException;
 import ru.practicum.shareit.exception.custom.NotFoundException;
 import ru.practicum.shareit.item.dto.CreateCommentDto;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.GetCommentDto;
 import ru.practicum.shareit.item.dto.GetItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.request.dto.CreateItemRequestDto;
+import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -33,6 +35,7 @@ import static ru.practicum.shareit.UtilTest.createUserDtos;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ItemServiceImplementTest {
     private final ItemService itemService;
+    private final ItemRequestService itemRequestService;
     private final UserService userService;
     private final BookingService bookingService;
 
@@ -149,10 +152,9 @@ class ItemServiceImplementTest {
 
         itemService.deleteItemById(itemId, userId);
         assertThrows(NotFoundException.class, () -> itemService.getItemById(itemId, userId));
-            }
+    }
 
     @Test
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     void commentItem() throws InterruptedException {
         List<CreateUserDto> usersCreate = createUserDtos(2);
         CreateUserDto ownerCreate = usersCreate.getFirst();
@@ -178,5 +180,122 @@ class ItemServiceImplementTest {
         GetCommentDto commentDto = itemService.commentItem(commentCreate, bookerId, itemId);
         assertEquals(commentCreate.getCreatedTime(), commentDto.getCreatedTime());
         assertEquals(commentCreate.getText(), commentDto.getText());
+    }
+
+    // CREATE
+    @Test
+    void successRequestWhenCreateItem() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        CreateUserDto requestUserCreate = usersCreate.getLast();
+        long requestUserId = userService.createUser(requestUserCreate).getId();
+
+        CreateItemRequestDto createItemRequestDto = new CreateItemRequestDto();
+        createItemRequestDto.setDescription("want");
+
+        long itemReqId = itemRequestService.createItemRequest(requestUserId, createItemRequestDto).getId();
+
+        List<CreateItemDto> itemsCreate = createItemDtos(1);
+        CreateItemDto itemCreate = itemsCreate.getFirst();
+        itemCreate.setRequestId(itemReqId);
+        assertDoesNotThrow(() -> itemService.createItem(itemCreate, ownerId));
+    }
+
+    @Test
+    void notFoundRequestWhenCreateItem() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        CreateUserDto requestUserCreate = usersCreate.getLast();
+        long requestUserId = userService.createUser(requestUserCreate).getId();
+
+        CreateItemRequestDto createItemRequestDto = new CreateItemRequestDto();
+        createItemRequestDto.setDescription("want");
+
+        long itemReqId = itemRequestService.createItemRequest(requestUserId, createItemRequestDto).getId();
+
+        long fakeReqId = -1L;
+
+        List<CreateItemDto> itemsCreate = createItemDtos(1);
+        CreateItemDto itemCreate = itemsCreate.getFirst();
+        itemCreate.setRequestId(fakeReqId);
+        assertThrows(NotFoundException.class, () -> itemService.createItem(itemCreate, ownerId));
+    }
+
+    @Test
+    void badRequestCreateWhenOwnerEqOwnerItem() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        CreateItemRequestDto createItemRequestDto = new CreateItemRequestDto();
+        createItemRequestDto.setDescription("want");
+
+        long itemReqId = itemRequestService.createItemRequest(ownerId, createItemRequestDto).getId();
+
+        List<CreateItemDto> itemsCreate = createItemDtos(1);
+        CreateItemDto itemCreate = itemsCreate.getFirst();
+        itemCreate.setRequestId(itemReqId);
+        assertThrows(BadRequestException.class, () -> itemService.createItem(itemCreate, ownerId));
+    }
+
+    // UPDATE
+    @Test
+    void successRequestWhenUpdateItem() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        CreateUserDto requestUserCreate = usersCreate.getLast();
+        long requestUserId = userService.createUser(requestUserCreate).getId();
+
+        CreateItemRequestDto createItemRequestDto = new CreateItemRequestDto();
+        createItemRequestDto.setDescription("want");
+
+        long itemReqId = itemRequestService.createItemRequest(requestUserId, createItemRequestDto).getId();
+
+        List<CreateItemDto> itemsCreate = createItemDtos(1);
+        CreateItemDto itemCreate = itemsCreate.getFirst();
+        long itemId = itemService.createItem(itemCreate, ownerId).getId();
+
+        UpdateItemDto updateItemDto = new UpdateItemDto();
+        updateItemDto.setRequestId(itemReqId);
+
+        assertDoesNotThrow(() -> itemService.updateItem(updateItemDto, itemId, ownerId));
+    }
+
+    @Test
+    void shouldBeNotFoundIfFakeUserGetItems() {
+        List<CreateUserDto> usersCreate = createUserDtos(1);
+        CreateUserDto userCreate = usersCreate.getFirst();
+        long userId = userService.createUser(userCreate).getId();
+
+        List<CreateItemDto> itemsCreate = createItemDtos(1);
+        CreateItemDto itemCreate = itemsCreate.getFirst();
+        long itemId = itemService.createItem(itemCreate, userId).getId();
+        long fakeUserId = -1L;
+
+        assertThrows(NotFoundException.class, () -> itemService.getItemById(itemId, fakeUserId));
+    }
+
+    @Test
+    void shouldBadReqWhenNotOwnerTryUpdateItem() {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        CreateUserDto requestUserCreate = usersCreate.getLast();
+        long fakeOwnerId = userService.createUser(requestUserCreate).getId();
+
+        List<CreateItemDto> itemsCreate = createItemDtos(1);
+        CreateItemDto itemCreate = itemsCreate.getFirst();
+        long itemId = itemService.createItem(itemCreate, ownerId).getId();
+
+        UpdateItemDto updateItemDto = new UpdateItemDto();
+
+        assertThrows(BadRequestException.class, () -> itemService.updateItem(updateItemDto, itemId, fakeOwnerId));
     }
 }
