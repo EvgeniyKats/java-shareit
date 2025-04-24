@@ -55,7 +55,7 @@ public class ItemServiceImplement implements ItemService {
             log.trace("Запрос был совершён владельцем");
 
             log.trace("Заполняем ближайший букинг");
-            Optional<BookingStartEnd> nextBookingTime = bookingRepository.findNextBookingTime(userId, item.getId());
+            Optional<BookingStartEnd> nextBookingTime = bookingRepository.findNextBookingTime(userId, item.getId(), LocalDateTime.now());
             if (nextBookingTime.isPresent()) {
                 log.trace("Ближайший букинг найден");
                 item.setNextBookingTime(nextBookingTime.get());
@@ -64,7 +64,7 @@ public class ItemServiceImplement implements ItemService {
             }
 
             log.trace("Заполняем последний букинг");
-            Optional<BookingStartEnd> lastBookingTime = bookingRepository.findLastBookingTime(userId, item.getId());
+            Optional<BookingStartEnd> lastBookingTime = bookingRepository.findLastBookingTime(userId, item.getId(), LocalDateTime.now());
             if (lastBookingTime.isPresent()) {
                 log.trace("Последний букинг найден");
                 item.setLastBookingTime(lastBookingTime.get());
@@ -212,13 +212,13 @@ public class ItemServiceImplement implements ItemService {
         List<Long> itemIds = new ArrayList<>(itemById.keySet());
 
         log.trace("Заполняем последний букинг для множества items");
-        List<BookingStartEnd> lastBookings = bookingRepository.findLastBookingTimeForIds(ownerId, itemIds);
+        List<BookingStartEnd> lastBookings = bookingRepository.findLastBookingTimeForIds(ownerId, itemIds, LocalDateTime.now());
         for (BookingStartEnd bookingTime : lastBookings) {
             itemById.get(bookingTime.getItemId()).setLastBookingTime(bookingTime);
         }
 
         log.trace("Заполняем ближайший букинг для множества items");
-        List<BookingStartEnd> nextBookings = bookingRepository.findNextBookingTimeForIds(ownerId, itemIds);
+        List<BookingStartEnd> nextBookings = bookingRepository.findNextBookingTimeForIds(ownerId, itemIds, LocalDateTime.now());
         for (BookingStartEnd bookingTime : nextBookings) {
             itemById.get(bookingTime.getItemId()).setNextBookingTime(bookingTime);
         }

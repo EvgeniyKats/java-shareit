@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -27,5 +28,6 @@ public class CreateBookingDto {
     @JsonProperty(value = "end")
     private LocalDateTime endBookingTime;
 
+    @JsonIgnore
     private final StatusBookingDto status = StatusBookingDto.WAITING;
 }

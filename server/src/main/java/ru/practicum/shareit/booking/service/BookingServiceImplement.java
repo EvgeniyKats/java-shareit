@@ -56,11 +56,23 @@ public class BookingServiceImplement implements BookingService {
         switch (state) {
             case ALL -> bookings = bookingRepository.findByBookerId(bookerId, sortDescByStartBookingTime);
             case PAST -> bookings = bookingRepository
-                    .findByBookerIdAndStartBookingTimeBefore(bookerId, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findByBookerIdAndEndBookingTimeBeforeAndStatus(bookerId,
+                            LocalDateTime.now(),
+                            StatusBooking.APPROVED,
+                            sortDescByStartBookingTime);
+
             case FUTURE -> bookings = bookingRepository
-                    .findByBookerIdAndEndBookingTimeAfter(bookerId, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findByBookerIdAndEndBookingTimeAfterAndStatus(bookerId,
+                            LocalDateTime.now(),
+                            StatusBooking.APPROVED,
+                            sortDescByStartBookingTime);
+
             case CURRENT -> bookings = bookingRepository
-                    .findCurrentBookingsForBooker(bookerId, sortDescByStartBookingTime);
+                    .findCurrentBookingsForBookerAndStatus(bookerId,
+                            StatusBooking.APPROVED,
+                            LocalDateTime.now(),
+                            sortDescByStartBookingTime);
+
             case WAITING -> bookings = bookingRepository
                     .findByBookerIdAndStatus(bookerId, StatusBooking.WAITING, sortDescByStartBookingTime);
             case REJECTED -> bookings = bookingRepository
@@ -89,11 +101,17 @@ public class BookingServiceImplement implements BookingService {
         switch (state) {
             case ALL -> bookings = bookingRepository.findAllBookingsForOwner(ownerId, sortDescByStartBookingTime);
             case PAST -> bookings = bookingRepository
-                    .findPastBookingsForOwner(ownerId, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findPastBookingsForOwnerAndStatus(ownerId,
+                            LocalDateTime.now(),
+                            StatusBooking.APPROVED,
+                            sortDescByStartBookingTime);
             case FUTURE -> bookings = bookingRepository
-                    .findFutureBookingsForOwner(ownerId, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findFutureBookingsForOwnerAndStatus(ownerId,
+                            LocalDateTime.now(),
+                            StatusBooking.APPROVED,
+                            sortDescByStartBookingTime);
             case CURRENT -> bookings = bookingRepository
-                    .findCurrentBookingsForOwner(ownerId, sortDescByStartBookingTime);
+                    .findCurrentBookingsForOwnerAndStatus(ownerId, StatusBooking.APPROVED, LocalDateTime.now(), sortDescByStartBookingTime);
             case WAITING -> bookings = bookingRepository
                     .findByStatusForOwner(ownerId, StatusBooking.WAITING, sortDescByStartBookingTime);
             case REJECTED -> bookings = bookingRepository

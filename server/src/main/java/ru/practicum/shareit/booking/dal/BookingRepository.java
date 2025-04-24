@@ -13,8 +13,8 @@ import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query(value = "SELECT b " +
-            "FROM Booking b " +
-            "WHERE b.id = ?1 AND (b.booker.id = ?2 OR b.item.ownerId = ?2)")
+                   "FROM Booking b " +
+                   "WHERE b.id = ?1 AND (b.booker.id = ?2 OR b.item.ownerId = ?2)")
     Optional<Booking> findByIdWithUserAccess(Long id, Long userId);
 
     Optional<Booking> findByIdAndStatus(Long id, StatusBooking status);
@@ -30,11 +30,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
               AND b.item_id IN (SELECT i.id
                                FROM item AS i
                                WHERE i.id IN ?2 AND i.owner_id = ?1)
-              AND b.start_booking_time < CURRENT_TIMESTAMP
+              AND b.start_booking_time < ?3
               AND b.status = 1
             GROUP BY b.item_id
             """, nativeQuery = true)
-    List<BookingStartEnd> findLastBookingTimeForIds(Long ownerId, List<Long> itemIds);
+    List<BookingStartEnd> findLastBookingTimeForIds(Long ownerId, List<Long> itemIds, LocalDateTime now);
 
     @Query(value = """
             SELECT b.item_id,
@@ -45,11 +45,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
               AND b.item_id IN (SELECT i.id
                                FROM item AS i
                                WHERE i.id IN ?2 AND i.owner_id = ?1)
-              AND b.start_booking_time > CURRENT_TIMESTAMP
+              AND b.start_booking_time > ?3
               AND b.status = 1
             GROUP BY b.item_id
             """, nativeQuery = true)
-    List<BookingStartEnd> findNextBookingTimeForIds(Long ownerId, List<Long> itemIds);
+    List<BookingStartEnd> findNextBookingTimeForIds(Long ownerId, List<Long> itemIds, LocalDateTime now);
 
     @Query(value = """
             SELECT b.id,
@@ -62,12 +62,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                FROM item AS i
                                WHERE i.id = ?2 AND i.owner_id = ?1
                                LIMIT 1)
-              AND b.start_booking_time > CURRENT_TIMESTAMP
+              AND b.start_booking_time > ?3
               AND b.status = 1
             ORDER BY b.start_booking_time ASC
             LIMIT 1
             """, nativeQuery = true)
-    Optional<BookingStartEnd> findNextBookingTime(Long ownerId, Long itemId);
+    Optional<BookingStartEnd> findNextBookingTime(Long ownerId, Long itemId, LocalDateTime now);
 
     @Query(value = """
             SELECT b.id,
@@ -80,55 +80,60 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                FROM item AS i
                                WHERE i.id = ?2 AND i.owner_id = ?1
                                LIMIT 1)
-              AND b.start_booking_time < CURRENT_TIMESTAMP
+              AND b.start_booking_time < ?3
               AND b.status = 1
             ORDER BY b.start_booking_time DESC
             LIMIT 1
             """, nativeQuery = true)
-    Optional<BookingStartEnd> findLastBookingTime(Long ownerId, Long itemId);
+    Optional<BookingStartEnd> findLastBookingTime(Long ownerId, Long itemId, LocalDateTime now);
 
     // Все букинги
     List<Booking> findByBookerId(Long bookerId, Sort sort);
 
     @Query(value = "SELECT b " +
-            "FROM Booking AS b " +
-            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1)")
+                   "FROM Booking AS b " +
+                   "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1)")
     List<Booking> findAllBookingsForOwner(Long ownerId, Sort sort);
 
     // Прошедшие букинги
-    List<Booking> findByBookerIdAndStartBookingTimeBefore(Long bookerId, LocalDateTime time, Sort sort);
+    List<Booking> findByBookerIdAndEndBookingTimeBeforeAndStatus(Long bookerId, LocalDateTime time, StatusBooking statusBooking, Sort sort);
 
     @Query(value = "SELECT b " +
-            "FROM Booking AS b " +
-            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.startBookingTime < ?2")
-    List<Booking> findPastBookingsForOwner(Long ownerId, LocalDateTime time, Sort sort);
+                   "FROM Booking AS b " +
+                   "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.endBookingTime < ?2 AND b.status = ?3")
+    List<Booking> findPastBookingsForOwnerAndStatus(Long ownerId, LocalDateTime time, StatusBooking statusBooking, Sort sort);
 
     // Будущие букинги
-    List<Booking> findByBookerIdAndEndBookingTimeAfter(Long bookerId, LocalDateTime time, Sort sort);
+    List<Booking> findByBookerIdAndEndBookingTimeAfterAndStatus(Long bookerId, LocalDateTime time, StatusBooking statusBooking, Sort sort);
 
     @Query(value = "SELECT b " +
-            "FROM Booking AS b " +
-            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.endBookingTime > ?2")
-    List<Booking> findFutureBookingsForOwner(Long ownerId, LocalDateTime time, Sort sort);
+                   "FROM Booking AS b " +
+                   "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.endBookingTime > ?2 AND b.status = ?3")
+    List<Booking> findFutureBookingsForOwnerAndStatus(Long ownerId, LocalDateTime time, StatusBooking statusBooking, Sort sort);
 
     // Текущие букинги
     @Query("SELECT b " +
-            "FROM Booking b " +
-            "WHERE b.booker.id = ?1 AND b.startBookingTime < CURRENT_TIMESTAMP AND b.endBookingTime > CURRENT_TIMESTAMP")
-    List<Booking> findCurrentBookingsForBooker(Long bookerId, Sort sort);
+           "FROM Booking b " +
+           "WHERE b.booker.id = ?1 " +
+           "AND b.startBookingTime < ?3 " +
+           "AND b.endBookingTime > ?3 " +
+           "AND b.status = ?2")
+    List<Booking> findCurrentBookingsForBookerAndStatus(Long bookerId, StatusBooking statusBooking, LocalDateTime now, Sort sort);
+
 
     @Query(value = "SELECT b " +
-            "FROM Booking AS b " +
-            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) " +
-            "AND b.startBookingTime < CURRENT_TIMESTAMP " +
-            "AND b.endBookingTime > CURRENT_TIMESTAMP")
-    List<Booking> findCurrentBookingsForOwner(Long ownerId, Sort sort);
+                   "FROM Booking AS b " +
+                   "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) " +
+                   "AND b.startBookingTime < ?3 " +
+                   "AND b.endBookingTime > ?3 " +
+                   "AND b.status = ?2")
+    List<Booking> findCurrentBookingsForOwnerAndStatus(Long ownerId, StatusBooking statusBooking, LocalDateTime now, Sort sort);
 
     // Букинги по статусу
     List<Booking> findByBookerIdAndStatus(Long bookerId, StatusBooking status, Sort sort);
 
     @Query(value = "SELECT b " +
-            "FROM Booking b " +
-            "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.status = ?2")
+                   "FROM Booking b " +
+                   "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.status = ?2")
     List<Booking> findByStatusForOwner(Long ownerId, StatusBooking status, Sort sort);
 }

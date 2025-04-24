@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.controller.BookingController;
 import ru.practicum.shareit.booking.dal.BookingRepository;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookingDto;
@@ -18,10 +17,12 @@ import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.dto.GetUserDto;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static ru.practicum.shareit.booking.controller.BookingController.StateParam;
 
 import static ru.practicum.shareit.UtilTest.*;
 
@@ -81,8 +82,77 @@ class BookingServiceImplementTest {
         createBookingDto2.setItemId(itemId2);
         bookingService.createBooking(createBookingDto2, bookerId);
 
-        long count = bookingService.getBookingsForBooker(BookingController.StateParam.ALL, bookerId).size();
+        long count = bookingService.getBookingsForBooker(StateParam.ALL, bookerId).size();
         assertEquals(2, count);
+    }
+
+    @Test
+    void getBookingsStatus() throws InterruptedException {
+        List<CreateUserDto> usersCreate = createUserDtos(2);
+        //owner
+        CreateUserDto ownerCreate = usersCreate.getFirst();
+        long ownerId = userService.createUser(ownerCreate).getId();
+
+        //booker
+        CreateUserDto bookerCreate = usersCreate.getLast();
+        long bookerId = userService.createUser(bookerCreate).getId();
+
+        List<CreateBookingDto> createBookingDtos = createBookingDtos(2);
+
+        // Подготовка
+        List<CreateItemDto> items = createItemDtos(2);
+
+        CreateItemDto itemAccept = items.getFirst();
+        long itemIdAccept = itemService.createItem(itemAccept, ownerId).getId();
+        CreateBookingDto dtoAccept = createBookingDtos.get(0);
+        dtoAccept.setStartBookingTime(LocalDateTime.now().plusSeconds(2));
+        dtoAccept.setEndBookingTime(LocalDateTime.now().plusSeconds(6));
+        dtoAccept.setItemId(itemIdAccept);
+
+        // WAITING
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.WAITING, bookerId).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.WAITING, ownerId).size());
+        long acceptId = bookingService.createBooking(dtoAccept, bookerId).getId();
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.WAITING, bookerId).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.WAITING, ownerId).size());
+        // FUTURE
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.FUTURE, bookerId).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.FUTURE, ownerId).size());
+        bookingService.makeDecisionForBooking(acceptId, true, ownerId);
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.FUTURE, bookerId).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.FUTURE, ownerId).size());
+        // CURRENT
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.CURRENT, bookerId).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.CURRENT, ownerId).size());
+
+        Thread.sleep(3000);
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.CURRENT, bookerId).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.CURRENT, ownerId).size());
+        // PAST
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.PAST, bookerId).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.PAST, ownerId).size());
+        Thread.sleep(4000);
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.PAST, bookerId).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.PAST, ownerId).size());
+
+        CreateItemDto itemReject = items.getFirst();
+        long itemIdReject = itemService.createItem(itemReject, ownerId).getId();
+        CreateBookingDto dtoReject = createBookingDtos.get(1);
+        dtoReject.setStartBookingTime(LocalDateTime.now().plusSeconds(2));
+        dtoReject.setEndBookingTime(LocalDateTime.now().plusSeconds(6));
+        dtoReject.setItemId(itemIdReject);
+        long itemRejectId = bookingService.createBooking(dtoReject, bookerId).getId();
+
+        // REJECT
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.REJECTED, bookerId).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.REJECTED, ownerId).size());
+        bookingService.makeDecisionForBooking(itemRejectId, false, ownerId);
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.REJECTED, bookerId).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.REJECTED, ownerId).size());
+
+        // ALL
+        assertEquals(2, bookingService.getBookingsForBooker(StateParam.ALL, bookerId).size());
+        assertEquals(2, bookingService.getBookingsForOwner(StateParam.ALL, ownerId).size());
     }
 
     @Test
@@ -110,7 +180,7 @@ class BookingServiceImplementTest {
         createBookingDto2.setItemId(itemId2);
         bookingService.createBooking(createBookingDto2, bookerId);
 
-        long count = bookingService.getBookingsForOwner(BookingController.StateParam.ALL, ownerId).size();
+        long count = bookingService.getBookingsForOwner(StateParam.ALL, ownerId).size();
         assertEquals(2, count);
     }
 
