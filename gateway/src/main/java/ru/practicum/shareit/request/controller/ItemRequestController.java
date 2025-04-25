@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.request.ItemRequestClient;
 import ru.practicum.shareit.request.dto.CreateItemRequestDto;
@@ -22,7 +22,7 @@ import ru.practicum.shareit.request.dto.CreateItemRequestDto;
 @Validated
 @Slf4j
 @RequiredArgsConstructor
-@RestController
+@Controller
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
     private final ItemRequestClient itemRequestClient;
