@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.dal;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -88,28 +89,28 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<BookingStartEnd> findLastBookingTime(Long ownerId, Long itemId, LocalDateTime now);
 
     // Все букинги
-    List<Booking> findByBookerId(Long bookerId, Sort sort);
+    List<Booking> findByBookerId(Long bookerId, Pageable pageable);
 
     @Query(value = "SELECT b " +
                    "FROM Booking AS b " +
                    "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1)")
-    List<Booking> findAllBookingsForOwner(Long ownerId, Sort sort);
+    List<Booking> findAllBookingsForOwner(Long ownerId, Pageable page);
 
     // Прошедшие букинги
-    List<Booking> findByBookerIdAndEndBookingTimeBeforeAndStatus(Long bookerId, LocalDateTime time, StatusBooking statusBooking, Sort sort);
+    List<Booking> findByBookerIdAndEndBookingTimeBeforeAndStatus(Long bookerId, LocalDateTime time, StatusBooking statusBooking, Pageable page);
 
     @Query(value = "SELECT b " +
                    "FROM Booking AS b " +
                    "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.endBookingTime < ?2 AND b.status = ?3")
-    List<Booking> findPastBookingsForOwnerAndStatus(Long ownerId, LocalDateTime time, StatusBooking statusBooking, Sort sort);
+    List<Booking> findPastBookingsForOwnerAndStatus(Long ownerId, LocalDateTime time, StatusBooking statusBooking, Pageable page);
 
     // Будущие букинги
-    List<Booking> findByBookerIdAndEndBookingTimeAfterAndStatus(Long bookerId, LocalDateTime time, StatusBooking statusBooking, Sort sort);
+    List<Booking> findByBookerIdAndEndBookingTimeAfterAndStatus(Long bookerId, LocalDateTime time, StatusBooking statusBooking, Pageable page);
 
     @Query(value = "SELECT b " +
                    "FROM Booking AS b " +
                    "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.endBookingTime > ?2 AND b.status = ?3")
-    List<Booking> findFutureBookingsForOwnerAndStatus(Long ownerId, LocalDateTime time, StatusBooking statusBooking, Sort sort);
+    List<Booking> findFutureBookingsForOwnerAndStatus(Long ownerId, LocalDateTime time, StatusBooking statusBooking, Pageable page);
 
     // Текущие букинги
     @Query("SELECT b " +
@@ -118,7 +119,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "AND b.startBookingTime < ?3 " +
            "AND b.endBookingTime > ?3 " +
            "AND b.status = ?2")
-    List<Booking> findCurrentBookingsForBookerAndStatus(Long bookerId, StatusBooking statusBooking, LocalDateTime now, Sort sort);
+    List<Booking> findCurrentBookingsForBookerAndStatus(Long bookerId, StatusBooking statusBooking, LocalDateTime now, Pageable page);
 
 
     @Query(value = "SELECT b " +
@@ -127,13 +128,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                    "AND b.startBookingTime < ?3 " +
                    "AND b.endBookingTime > ?3 " +
                    "AND b.status = ?2")
-    List<Booking> findCurrentBookingsForOwnerAndStatus(Long ownerId, StatusBooking statusBooking, LocalDateTime now, Sort sort);
+    List<Booking> findCurrentBookingsForOwnerAndStatus(Long ownerId, StatusBooking statusBooking, LocalDateTime now, Pageable page);
 
     // Букинги по статусу
-    List<Booking> findByBookerIdAndStatus(Long bookerId, StatusBooking status, Sort sort);
+    List<Booking> findByBookerIdAndStatus(Long bookerId, StatusBooking status, Pageable page);
 
     @Query(value = "SELECT b " +
                    "FROM Booking b " +
                    "WHERE b.item.id IN (SELECT i.id FROM b.item AS i WHERE i.ownerId = ?1) AND b.status = ?2")
-    List<Booking> findByStatusForOwner(Long ownerId, StatusBooking status, Sort sort);
+    List<Booking> findByStatusForOwner(Long ownerId, StatusBooking status, Pageable page);
 }

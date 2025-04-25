@@ -11,19 +11,20 @@ import org.springframework.test.web.servlet.ResultActions;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.item.controller.ItemController;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
 
 @WebMvcTest(controllers = BookingController.class)
 class BookingControllerTest {
@@ -50,7 +51,7 @@ class BookingControllerTest {
                 .thenReturn(singleAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -64,7 +65,7 @@ class BookingControllerTest {
                 .thenReturn(singleAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isBadRequest());
     }
 
@@ -78,7 +79,7 @@ class BookingControllerTest {
                 .thenReturn(singleAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isBadRequest());
     }
 
@@ -87,11 +88,11 @@ class BookingControllerTest {
         long userId = 1;
         String path = API_PREFIX;
 
-        when(bookingService.getBookingsForBooker(any(), anyLong()))
+        when(bookingService.getBookingsForBooker(any(), anyLong(), anyInt(), anyInt()))
                 .thenReturn(listAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -100,11 +101,11 @@ class BookingControllerTest {
         long userId = 1;
         String path = API_PREFIX + "/owner";
 
-        when(bookingService.getBookingsForOwner(any(), anyLong()))
+        when(bookingService.getBookingsForOwner(any(), anyLong(), anyInt(), anyInt()))
                 .thenReturn(listAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -124,7 +125,7 @@ class BookingControllerTest {
         ResultActions actions = mockMvc.perform(post(path)
                         .content(objectMapper.writeValueAsString(createBookingDto))
                         .contentType(MediaType.APPLICATION_JSON)
-                .header(ItemController.HEADER_USER_ID, userId))
+                .header(HEADER_USER_ID, userId))
                 .andExpect(status().isCreated());
     }
 
@@ -139,7 +140,7 @@ class BookingControllerTest {
 
         mockMvc.perform(patch(path)
                         .param("approved", "true")
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 }

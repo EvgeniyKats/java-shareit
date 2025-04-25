@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,7 @@ import ru.practicum.shareit.item.dto.UpdateItemDto;
 import java.util.List;
 
 import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
+import static ru.practicum.shareit.PageConfig.DEFAULT_SIZE;
 
 @Validated
 @RestController
@@ -46,18 +49,22 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<GetItemDto> getItemsByUserId(@Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
-        log.info("Получен GET /items, userId = {}", userId);
-        List<GetItemDto> ans = itemService.getItemsByUserId(userId);
+    public List<GetItemDto> getItemsByUserId(@Min(1) @RequestHeader(HEADER_USER_ID) Long userId,
+                                             @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                             @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size) {
+        log.info("Получен GET /items, userId = {}, from = {}, size = {}", userId, from, size);
+        List<GetItemDto> ans = itemService.getItemsByUserId(userId, from, size);
         log.info("Список предметов пользователя userId = {} : items = {}", userId, ans);
         return ans;
     }
 
     @GetMapping("/search")
     public List<GetItemDto> searchByText(@RequestParam String text,
-                                         @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
-        log.info("Получен GET /items/search?text={}, userId={}", text, userId);
-        List<GetItemDto> ans = itemService.getItemsByText(text, userId);
+                                         @Min(1) @RequestHeader(HEADER_USER_ID) Long userId,
+                                         @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                         @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size) {
+        log.info("Получен GET /items/search?text={}, userId={}, from = {}, size = {}", text, userId, from, size);
+        List<GetItemDto> ans = itemService.getItemsByText(text, userId, from, size);
         log.info("Список предметов по запросу GET /items/search?text={} : items = {}", text, ans);
         return ans;
     }

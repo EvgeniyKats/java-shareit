@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static ru.practicum.shareit.PageConfig.DEFAULT_SIZE_INT;
 import static ru.practicum.shareit.booking.controller.BookingController.StateParam;
 
 import static ru.practicum.shareit.UtilTest.*;
@@ -85,7 +86,7 @@ class BookingServiceImplementTest {
         createBookingDto2.setItemId(itemId2);
         bookingService.createBooking(createBookingDto2, bookerId);
 
-        long count = bookingService.getBookingsForBooker(StateParam.ALL, bookerId).size();
+        long count = bookingService.getBookingsForBooker(StateParam.ALL, bookerId, 0, DEFAULT_SIZE_INT).size();
         assertEquals(2, count);
     }
 
@@ -113,30 +114,30 @@ class BookingServiceImplementTest {
         dtoAccept.setItemId(itemIdAccept);
 
         // WAITING
-        assertEquals(0, bookingService.getBookingsForBooker(StateParam.WAITING, bookerId).size());
-        assertEquals(0, bookingService.getBookingsForOwner(StateParam.WAITING, ownerId).size());
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.WAITING, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.WAITING, ownerId, 0, DEFAULT_SIZE_INT).size());
         long acceptId = bookingService.createBooking(dtoAccept, bookerId).getId();
-        assertEquals(1, bookingService.getBookingsForBooker(StateParam.WAITING, bookerId).size());
-        assertEquals(1, bookingService.getBookingsForOwner(StateParam.WAITING, ownerId).size());
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.WAITING, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.WAITING, ownerId, 0, DEFAULT_SIZE_INT).size());
         // FUTURE
-        assertEquals(0, bookingService.getBookingsForBooker(StateParam.FUTURE, bookerId).size());
-        assertEquals(0, bookingService.getBookingsForOwner(StateParam.FUTURE, ownerId).size());
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.FUTURE, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.FUTURE, ownerId, 0, DEFAULT_SIZE_INT).size());
         bookingService.makeDecisionForBooking(acceptId, true, ownerId);
-        assertEquals(1, bookingService.getBookingsForBooker(StateParam.FUTURE, bookerId).size());
-        assertEquals(1, bookingService.getBookingsForOwner(StateParam.FUTURE, ownerId).size());
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.FUTURE, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.FUTURE, ownerId, 0, DEFAULT_SIZE_INT).size());
         // CURRENT
-        assertEquals(0, bookingService.getBookingsForBooker(StateParam.CURRENT, bookerId).size());
-        assertEquals(0, bookingService.getBookingsForOwner(StateParam.CURRENT, ownerId).size());
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.CURRENT, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.CURRENT, ownerId, 0, DEFAULT_SIZE_INT).size());
 
         Thread.sleep(3000);
-        assertEquals(1, bookingService.getBookingsForBooker(StateParam.CURRENT, bookerId).size());
-        assertEquals(1, bookingService.getBookingsForOwner(StateParam.CURRENT, ownerId).size());
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.CURRENT, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.CURRENT, ownerId, 0, DEFAULT_SIZE_INT).size());
         // PAST
-        assertEquals(0, bookingService.getBookingsForBooker(StateParam.PAST, bookerId).size());
-        assertEquals(0, bookingService.getBookingsForOwner(StateParam.PAST, ownerId).size());
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.PAST, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.PAST, ownerId, 0, DEFAULT_SIZE_INT).size());
         Thread.sleep(4000);
-        assertEquals(1, bookingService.getBookingsForBooker(StateParam.PAST, bookerId).size());
-        assertEquals(1, bookingService.getBookingsForOwner(StateParam.PAST, ownerId).size());
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.PAST, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.PAST, ownerId, 0, DEFAULT_SIZE_INT).size());
 
         CreateItemDto itemReject = items.getFirst();
         long itemIdReject = itemService.createItem(itemReject, ownerId).getId();
@@ -147,15 +148,15 @@ class BookingServiceImplementTest {
         long itemRejectId = bookingService.createBooking(dtoReject, bookerId).getId();
 
         // REJECT
-        assertEquals(0, bookingService.getBookingsForBooker(StateParam.REJECTED, bookerId).size());
-        assertEquals(0, bookingService.getBookingsForOwner(StateParam.REJECTED, ownerId).size());
+        assertEquals(0, bookingService.getBookingsForBooker(StateParam.REJECTED, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(0, bookingService.getBookingsForOwner(StateParam.REJECTED, ownerId, 0, DEFAULT_SIZE_INT).size());
         bookingService.makeDecisionForBooking(itemRejectId, false, ownerId);
-        assertEquals(1, bookingService.getBookingsForBooker(StateParam.REJECTED, bookerId).size());
-        assertEquals(1, bookingService.getBookingsForOwner(StateParam.REJECTED, ownerId).size());
+        assertEquals(1, bookingService.getBookingsForBooker(StateParam.REJECTED, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(1, bookingService.getBookingsForOwner(StateParam.REJECTED, ownerId, 0, DEFAULT_SIZE_INT).size());
 
         // ALL
-        assertEquals(2, bookingService.getBookingsForBooker(StateParam.ALL, bookerId).size());
-        assertEquals(2, bookingService.getBookingsForOwner(StateParam.ALL, ownerId).size());
+        assertEquals(2, bookingService.getBookingsForBooker(StateParam.ALL, bookerId, 0, DEFAULT_SIZE_INT).size());
+        assertEquals(2, bookingService.getBookingsForOwner(StateParam.ALL, ownerId, 0, DEFAULT_SIZE_INT).size());
     }
 
     @Test
@@ -183,7 +184,7 @@ class BookingServiceImplementTest {
         createBookingDto2.setItemId(itemId2);
         bookingService.createBooking(createBookingDto2, bookerId);
 
-        long count = bookingService.getBookingsForOwner(StateParam.ALL, ownerId).size();
+        long count = bookingService.getBookingsForOwner(StateParam.ALL, ownerId, 0, DEFAULT_SIZE_INT).size();
         assertEquals(2, count);
     }
 

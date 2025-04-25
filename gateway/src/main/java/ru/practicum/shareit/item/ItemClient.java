@@ -30,14 +30,22 @@ public class ItemClient extends BaseClient {
         return get(path, userId);
     }
 
-    public HttpEntity<Object> getItemsByUserId(long userId) {
-        String path = "";
-        return get(path, userId);
+    public HttpEntity<Object> getItemsByUserId(long userId, int from, int size) {
+        String path = "?from={from}&size={size}";
+
+        Map<String, Object> parameters = Map.of("from", from,
+                "size", size);
+
+        return get(path, userId, parameters);
     }
 
-    public HttpEntity<Object> getItemsByText(String text, long userId) {
-        String path = "/search?text={text}";
-        Map<String, Object> parameters = Map.of("text", text);
+    public HttpEntity<Object> getItemsByText(String text, long userId, int from, int size) {
+        String path = "/search?text={text}&from={from}&size={size}";
+
+        Map<String, Object> parameters = Map.of("text", text,
+                "from", from,
+                "size", size);
+
         return get(path, userId, parameters);
     }
 

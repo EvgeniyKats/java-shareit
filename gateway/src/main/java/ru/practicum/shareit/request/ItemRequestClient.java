@@ -9,6 +9,8 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.request.dto.CreateItemRequestDto;
 
+import java.util.Map;
+
 @Component
 public class ItemRequestClient extends BaseClient {
     private static final String API_PREFIX = "/requests";
@@ -20,14 +22,22 @@ public class ItemRequestClient extends BaseClient {
                 .build());
     }
 
-    public HttpEntity<Object> getUserItemRequests(long userId) {
-        String path = "";
-        return get(path, userId);
+    public HttpEntity<Object> getUserItemRequests(long userId, int from, int size) {
+        String path = "?from={from}&size={size}";
+
+        Map<String, Object> parameters = Map.of("from", from,
+                "size", size);
+
+        return get(path, userId, parameters);
     }
 
-    public HttpEntity<Object> getAllItemRequests(long userId) {
-        String path = "/all";
-        return get(path, userId);
+    public HttpEntity<Object> getAllItemRequests(long userId, int from, int size) {
+        String path = "/all?from={from}&size={size}";
+
+        Map<String, Object> parameters = Map.of("from", from,
+                "size", size);
+
+        return get(path, userId, parameters);
     }
 
     public HttpEntity<Object> getItemRequestById(long userId, long requestId) {

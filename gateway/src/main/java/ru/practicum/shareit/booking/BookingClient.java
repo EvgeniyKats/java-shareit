@@ -27,14 +27,21 @@ public class BookingClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> getBookings(long userId, BookingController.StateParam state, boolean isOwner) {
-        Map<String, Object> parameters = Map.of("state", state.name());
+    public ResponseEntity<Object> getBookings(long userId,
+                                              BookingController.StateParam state,
+                                              boolean isOwner,
+                                              Integer from,
+                                              Integer size) {
         String path;
         if (isOwner) {
-            path = "/owner?state={state}";
+            path = "/owner?state={state}&from={from}&size={size}";
         } else {
-            path = "?state={state}";
+            path = "?state={state}&from={from}&size={size}";
         }
+
+        Map<String, Object> parameters = Map.of("state", state.name(),
+                "from", from,
+                "size", size);
 
         return get(path, userId, parameters);
     }

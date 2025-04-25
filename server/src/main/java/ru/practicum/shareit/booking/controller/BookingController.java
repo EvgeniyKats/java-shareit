@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import ru.practicum.shareit.booking.service.BookingService;
 import java.util.List;
 
 import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
+import static ru.practicum.shareit.PageConfig.DEFAULT_SIZE;
 
 @Validated
 @RequiredArgsConstructor
@@ -43,18 +46,22 @@ public class BookingController {
 
     @GetMapping
     public List<GetBookingDto> getBookingsForBooker(@RequestParam(defaultValue = "ALL") StateParam state,
+                                                    @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                    @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size,
                                                     @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
-        log.info("Получен GET /bookings, state = {}, userId = {}", state, userId);
-        List<GetBookingDto> ans = bookingService.getBookingsForBooker(state, userId);
+        log.info("Получен GET /bookings, state = {}, userId = {}, from = {}, size = {}", state, userId, from, size);
+        List<GetBookingDto> ans = bookingService.getBookingsForBooker(state, userId, from, size);
         log.info("Найдено {} бронирований для пользователя с id = {}", ans.size(), userId);
         return ans;
     }
 
     @GetMapping("/owner")
     public List<GetBookingDto> getBookingsForOwner(@RequestParam(defaultValue = "ALL") StateParam state,
+                                                   @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                   @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size,
                                                    @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /bookings/owner, state = {}, userId = {}", state, userId);
-        List<GetBookingDto> ans = bookingService.getBookingsForOwner(state, userId);
+        List<GetBookingDto> ans = bookingService.getBookingsForOwner(state, userId, from, size);
         log.info("Найдено {} бронирований для владельца с id = {}", ans.size(), userId);
         return ans;
     }

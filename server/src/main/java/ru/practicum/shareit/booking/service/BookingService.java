@@ -10,9 +10,9 @@ import java.util.List;
 public interface BookingService {
     GetBookingDto getBookingById(Long bookingId, Long userId);
 
-    List<GetBookingDto> getBookingsForBooker(StateParam state, Long userId);
+    List<GetBookingDto> getBookingsForBooker(StateParam state, Long userId, Integer from, Integer size);
 
-    List<GetBookingDto> getBookingsForOwner(StateParam state, Long userId);
+    List<GetBookingDto> getBookingsForOwner(StateParam state, Long userId, Integer from, Integer size);
 
     GetBookingDto createBooking(CreateBookingDto createBookingDto, Long userId);
 

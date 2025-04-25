@@ -3,12 +3,15 @@ package ru.practicum.shareit.request.dal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.request.model.ItemRequest;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static ru.practicum.shareit.PageConfig.DEFAULT_SIZE_INT;
 import static ru.practicum.shareit.UtilTest.CREATE_TIME_BASE;
 import static ru.practicum.shareit.UtilTest.DESCRIPTION_BASE;
 
@@ -39,7 +42,8 @@ class ItemRequestRepositoryIntegrationTest {
             itemRequestRepository.save(itemRequest);
         });
 
-        List<ItemRequest> fromRep = itemRequestRepository.findByOwnerIdOrderByCreatedTimeDesc(targetOwner);
+        Pageable page = PageRequest.of(0, DEFAULT_SIZE_INT);
+        List<ItemRequest> fromRep = itemRequestRepository.findByOwnerIdOrderByCreatedTimeDesc(targetOwner, page);
         assertEquals(2, fromRep.size());
     }
 

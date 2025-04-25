@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -24,6 +26,7 @@ import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 
 import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
+import static ru.practicum.shareit.PageConfig.DEFAULT_SIZE;
 
 @Slf4j
 @Validated
@@ -40,14 +43,18 @@ public class ItemController {
     }
 
     @GetMapping
-    public HttpEntity<Object> getItemsByUserId(@Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
-        return itemClient.getItemsByUserId(userId);
+    public HttpEntity<Object> getItemsByUserId(@Min(1) @RequestHeader(HEADER_USER_ID) Long userId,
+                                               @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                               @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size) {
+        return itemClient.getItemsByUserId(userId, from, size);
     }
 
     @GetMapping("/search")
     public HttpEntity<Object> searchByText(@RequestParam String text,
+                                           @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                           @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size,
                                            @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
-        return itemClient.getItemsByText(text, userId);
+        return itemClient.getItemsByText(text, userId, from, size);
     }
 
     @PostMapping

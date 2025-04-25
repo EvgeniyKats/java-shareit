@@ -2,6 +2,8 @@ package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +29,11 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final MapperItemRequestDto mapperItemRequestDto;
 
     @Override
-    public List<GetItemRequestDto> getUserItemRequests(Long userId) {
-        log.trace("Получение запросов для пользователя userId = {}", userId);
+    public List<GetItemRequestDto> getUserItemRequests(Long userId, Integer from, Integer size) {
+        log.trace("Получение запросов для пользователя userId = {}, from = {}, size = {}", userId, from, size);
         throwNotFoundIfUserAbsent(userId);
-        List<ItemRequest> requests = itemRequestRepository.findByOwnerIdOrderByCreatedTimeDesc(userId);
+        Pageable page = PageRequest.of(from, size);
+        List<ItemRequest> requests = itemRequestRepository.findByOwnerIdOrderByCreatedTimeDesc(userId, page);
         log.trace("Найдено {} запросов пользователя {}", requests.size(), userId);
         return requests.stream()
                 .map(mapperItemRequestDto::mapModelToGetDto)
@@ -38,11 +41,12 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public List<GetItemRequestDto> getAllItemRequests(Long userId) {
-        log.trace("Получение всех запросов, для пользователя = {}", userId);
+    public List<GetItemRequestDto> getAllItemRequests(Long userId, Integer from, Integer size) {
+        log.trace("Получение всех запросов, для пользователя = {}, from = {}, size = {}", userId, from, size);
         throwNotFoundIfUserAbsent(userId);
         Sort sort = Sort.by(Sort.Direction.DESC, "createdTime");
-        List<ItemRequest> requests = itemRequestRepository.findAll(sort);
+        Pageable page = PageRequest.of(from, size, sort);
+        List<ItemRequest> requests = itemRequestRepository.findAll(page).getContent();
         log.trace("Найдено {} запросов", requests.size());
         return requests.stream()
                 .map(mapperItemRequestDto::mapModelToGetDto)

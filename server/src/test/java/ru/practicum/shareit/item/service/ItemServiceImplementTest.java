@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static ru.practicum.shareit.PageConfig.DEFAULT_SIZE_INT;
 import static ru.practicum.shareit.UtilTest.NAME_BASE;
 import static ru.practicum.shareit.UtilTest.createCommentDtos;
 import static ru.practicum.shareit.UtilTest.createItemDtos;
@@ -71,7 +72,7 @@ class ItemServiceImplementTest {
         CreateItemDto itemCreate2 = itemsCreate.getLast();
         long itemId2 = itemService.createItem(itemCreate2, userId).getId();
 
-        List<GetItemDto> items = itemService.getItemsByUserId(userId);
+        List<GetItemDto> items = itemService.getItemsByUserId(userId, 0, DEFAULT_SIZE_INT);
         assertEquals(2, items.size());
         List<Long> ids = items.stream()
                 .map(GetItemDto::getId)
@@ -93,7 +94,7 @@ class ItemServiceImplementTest {
         CreateItemDto itemCreate2 = itemsCreate.getLast();
         long itemId2 = itemService.createItem(itemCreate2, userId).getId();
 
-        List<GetItemDto> items = itemService.getItemsByText(NAME_BASE, userId);
+        List<GetItemDto> items = itemService.getItemsByText(NAME_BASE, userId, 0, DEFAULT_SIZE_INT);
         assertEquals(2, items.size());
         List<Long> ids = items.stream()
                 .map(GetItemDto::getId)

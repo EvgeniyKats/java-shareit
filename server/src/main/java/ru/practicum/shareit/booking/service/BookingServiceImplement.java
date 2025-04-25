@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,38 +47,42 @@ public class BookingServiceImplement implements BookingService {
     }
 
     @Override
-    public List<GetBookingDto> getBookingsForBooker(final BookingController.StateParam state, Long bookerId) {
-        log.info("Получение bookings state = {}, bookerId = {}", state, bookerId);
+    public List<GetBookingDto> getBookingsForBooker(final BookingController.StateParam state,
+                                                    Long bookerId,
+                                                    Integer from,
+                                                    Integer size) {
+        log.info("Получение bookings state = {}, bookerId = {}, from = {}, size = {}", state, bookerId, from, size);
         getUserByIdOrThrowNotFound(bookerId);
 
         List<Booking> bookings;
 
         Sort sortDescByStartBookingTime = Sort.by(Sort.Direction.DESC, "startBookingTime");
+        Pageable page = PageRequest.of(from, size, sortDescByStartBookingTime);
 
         switch (state) {
-            case ALL -> bookings = bookingRepository.findByBookerId(bookerId, sortDescByStartBookingTime);
+            case ALL -> bookings = bookingRepository.findByBookerId(bookerId, page);
             case PAST -> bookings = bookingRepository
                     .findByBookerIdAndEndBookingTimeBeforeAndStatus(bookerId,
                             LocalDateTime.now(),
                             StatusBooking.APPROVED,
-                            sortDescByStartBookingTime);
+                            page);
 
             case FUTURE -> bookings = bookingRepository
                     .findByBookerIdAndEndBookingTimeAfterAndStatus(bookerId,
                             LocalDateTime.now(),
                             StatusBooking.APPROVED,
-                            sortDescByStartBookingTime);
+                            page);
 
             case CURRENT -> bookings = bookingRepository
                     .findCurrentBookingsForBookerAndStatus(bookerId,
                             StatusBooking.APPROVED,
                             LocalDateTime.now(),
-                            sortDescByStartBookingTime);
+                            page);
 
             case WAITING -> bookings = bookingRepository
-                    .findByBookerIdAndStatus(bookerId, StatusBooking.WAITING, sortDescByStartBookingTime);
+                    .findByBookerIdAndStatus(bookerId, StatusBooking.WAITING, page);
             case REJECTED -> bookings = bookingRepository
-                    .findByBookerIdAndStatus(bookerId, StatusBooking.REJECTED, sortDescByStartBookingTime);
+                    .findByBookerIdAndStatus(bookerId, StatusBooking.REJECTED, page);
             default -> {
                 log.warn("Неизвестный параметр state = {}, booker", state);
                 bookings = new ArrayList<>();
@@ -90,32 +96,40 @@ public class BookingServiceImplement implements BookingService {
     }
 
     @Override
-    public List<GetBookingDto> getBookingsForOwner(BookingController.StateParam state, Long ownerId) {
-        log.info("Получение bookings state = {}, ownerId = {}", state, ownerId);
+    public List<GetBookingDto> getBookingsForOwner(BookingController.StateParam state,
+                                                   Long ownerId,
+                                                   Integer from,
+                                                   Integer size) {
+        log.info("Получение bookings state = {}, ownerId = {}, from = {}, size = {}", state, ownerId, from, size);
         getUserByIdOrThrowNotFound(ownerId);
 
         List<Booking> bookings;
 
         Sort sortDescByStartBookingTime = Sort.by(Sort.Direction.DESC, "startBookingTime");
+        Pageable page = PageRequest.of(from, size, sortDescByStartBookingTime);
 
         switch (state) {
-            case ALL -> bookings = bookingRepository.findAllBookingsForOwner(ownerId, sortDescByStartBookingTime);
+            case ALL -> bookings = bookingRepository.findAllBookingsForOwner(ownerId, page);
             case PAST -> bookings = bookingRepository
                     .findPastBookingsForOwnerAndStatus(ownerId,
                             LocalDateTime.now(),
                             StatusBooking.APPROVED,
-                            sortDescByStartBookingTime);
+                            page);
             case FUTURE -> bookings = bookingRepository
                     .findFutureBookingsForOwnerAndStatus(ownerId,
                             LocalDateTime.now(),
                             StatusBooking.APPROVED,
-                            sortDescByStartBookingTime);
+                            page);
             case CURRENT -> bookings = bookingRepository
-                    .findCurrentBookingsForOwnerAndStatus(ownerId, StatusBooking.APPROVED, LocalDateTime.now(), sortDescByStartBookingTime);
+                    .findCurrentBookingsForOwnerAndStatus(ownerId,
+                            StatusBooking.APPROVED,
+                            LocalDateTime.now(),
+                            page);
+
             case WAITING -> bookings = bookingRepository
-                    .findByStatusForOwner(ownerId, StatusBooking.WAITING, sortDescByStartBookingTime);
+                    .findByStatusForOwner(ownerId, StatusBooking.WAITING, page);
             case REJECTED -> bookings = bookingRepository
-                    .findByStatusForOwner(ownerId, StatusBooking.REJECTED, sortDescByStartBookingTime);
+                    .findByStatusForOwner(ownerId, StatusBooking.REJECTED, page);
             default -> {
                 log.warn("Неизвестный параметр state = {}, owner", state);
                 bookings = new ArrayList<>();

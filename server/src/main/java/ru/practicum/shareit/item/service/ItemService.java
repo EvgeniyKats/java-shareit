@@ -11,9 +11,9 @@ import java.util.List;
 public interface ItemService {
     GetItemDto getItemById(Long itemId, Long userId);
 
-    List<GetItemDto> getItemsByUserId(Long userId);
+    List<GetItemDto> getItemsByUserId(Long userId, Integer from, Integer size);
 
-    List<GetItemDto> getItemsByText(String text, Long userId);
+    List<GetItemDto> getItemsByText(String text, Long userId, Integer from, Integer size);
 
     GetItemDto createItem(CreateItemDto createItemDto, Long userId);
 

@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,7 @@ import ru.practicum.shareit.booking.BookingClient;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 
 import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
+import static ru.practicum.shareit.PageConfig.DEFAULT_SIZE;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,20 +42,24 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> getBookingsForBooker(@RequestParam(defaultValue = "ALL") StateParam state,
+                                                       @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                       @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size,
                                                        @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
-        return bookingClient.getBookings(userId, state, false);
+        return bookingClient.getBookings(userId, state, false, from, size);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getBookingsForOwner(@RequestParam(defaultValue = "ALL") StateParam state,
+                                                      @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                      @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size,
                                                       @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
-        return bookingClient.getBookings(userId, state, true);
+        return bookingClient.getBookings(userId, state, true, from, size);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createBooking(@Valid @RequestBody CreateBookingDto createBookingDto,
-                                       @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
+                                                @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         return bookingClient.createBooking(userId, createBookingDto);
     }
 

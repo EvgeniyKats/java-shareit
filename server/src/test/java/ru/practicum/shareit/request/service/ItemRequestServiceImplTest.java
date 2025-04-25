@@ -18,6 +18,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static ru.practicum.shareit.PageConfig.DEFAULT_SIZE_INT;
 import static ru.practicum.shareit.UtilTest.DESCRIPTION_BASE;
 
 @ActiveProfiles("test")
@@ -38,7 +39,9 @@ class ItemRequestServiceImplTest {
 
         requestDtos.forEach(dto -> itemRequestService.createItemRequest(user.getId(), dto));
 
-        List<GetItemRequestDto> userRequests = itemRequestService.getUserItemRequests(user.getId());
+        List<GetItemRequestDto> userRequests = itemRequestService.getUserItemRequests(user.getId(),
+                0,
+                DEFAULT_SIZE_INT);
 
         assertEquals(3, userRequests.size());
     }
@@ -57,7 +60,9 @@ class ItemRequestServiceImplTest {
         List<CreateItemRequestDto> requestDtos2 = UtilTest.createItemRequestsDtos(3);
         requestDtos2.forEach(dto -> itemRequestService.createItemRequest(user1.getId(), dto));
 
-        List<GetItemRequestDto> allRequests = itemRequestService.getAllItemRequests(user1.getId());
+        List<GetItemRequestDto> allRequests = itemRequestService.getAllItemRequests(user1.getId(),
+                0,
+                DEFAULT_SIZE_INT);
 
         assertEquals(6, allRequests.size());
     }
@@ -104,7 +109,9 @@ class ItemRequestServiceImplTest {
         userRepository.save(user);
         CreateItemRequestDto dto = UtilTest.createItemRequestsDtos(1).getFirst();
         itemRequestService.createItemRequest(user.getId(), dto);
-        assertThrows(NotFoundException.class, () -> itemRequestService.getUserItemRequests(-1L));
+        assertThrows(NotFoundException.class, () -> itemRequestService.getUserItemRequests(-1L,
+                0,
+                DEFAULT_SIZE_INT));
     }
 
 
@@ -115,7 +122,9 @@ class ItemRequestServiceImplTest {
         CreateItemRequestDto dto = UtilTest.createItemRequestsDtos(1).getFirst();
 
         itemRequestService.createItemRequest(user.getId(), dto);
-        assertThrows(NotFoundException.class, () -> itemRequestService.getAllItemRequests(-1L));
+        assertThrows(NotFoundException.class, () -> itemRequestService.getAllItemRequests(-1L,
+                0,
+                DEFAULT_SIZE_INT));
     }
 
     @Test

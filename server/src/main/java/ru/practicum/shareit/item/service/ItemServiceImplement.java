@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,10 +81,14 @@ public class ItemServiceImplement implements ItemService {
     }
 
     @Override
-    public List<GetItemDto> getItemsByUserId(Long userId) {
-        log.trace("Попытка получить предметы пользователя userId = {}", userId);
+    public List<GetItemDto> getItemsByUserId(Long userId, Integer from, Integer size) {
+        log.trace("Попытка получить предметы пользователя userId = {}, from = {}, size = {}",
+                userId,
+                from,
+                size);
         getUserOrThrowNotFound(userId);
-        List<Item> items = itemRepository.findByOwnerId(userId);
+        Pageable page = PageRequest.of(from, size);
+        List<Item> items = itemRepository.findByOwnerId(userId, page);
 
         if (!items.isEmpty() && items.getFirst().getOwnerId().equals(userId)) {
             Map<Long, Item> itemById = new HashMap<>();
@@ -100,11 +106,16 @@ public class ItemServiceImplement implements ItemService {
     }
 
     @Override
-    public List<GetItemDto> getItemsByText(String text, Long userId) {
-        log.trace("Попытка получить предметы через поиск \"{}\" от пользователя userId = {}", text, userId);
+    public List<GetItemDto> getItemsByText(String text, Long userId, Integer from, Integer size) {
+        log.trace("Попытка получить предметы через поиск {} от пользователя userId = {}, from = {}, size = {}",
+                text,
+                userId,
+                from,
+                size);
         getUserOrThrowNotFound(userId);
         if (text.isBlank()) return List.of();
-        List<Item> items = itemRepository.findByAvailableTrueAndNameContainingIgnoreCase(text);
+        Pageable page = PageRequest.of(from, size);
+        List<Item> items = itemRepository.findByAvailableTrueAndNameContainingIgnoreCase(text, page);
         return items.stream()
                 .map(mapperItemDto::itemToGetDto)
                 .toList();

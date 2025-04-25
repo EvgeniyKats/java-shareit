@@ -18,6 +18,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -26,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
 
 @WebMvcTest(controllers = ItemController.class)
 class ItemControllerTest {
@@ -70,7 +72,7 @@ class ItemControllerTest {
                 .thenReturn(singleAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -79,11 +81,11 @@ class ItemControllerTest {
         long userId = 1;
         String path = API_PREFIX;
 
-        when(itemService.getItemsByUserId(anyLong()))
+        when(itemService.getItemsByUserId(anyLong(), anyInt(), anyInt()))
                 .thenReturn(listAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -92,12 +94,12 @@ class ItemControllerTest {
         long userId = 1;
         String path = API_PREFIX + "/search";
 
-        when(itemService.getItemsByText(anyString(), anyLong()))
+        when(itemService.getItemsByText(anyString(), anyLong(), anyInt(), anyInt()))
                 .thenReturn(listAns);
 
         mockMvc.perform(get(path)
                         .param("text", "text")
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -112,7 +114,7 @@ class ItemControllerTest {
         mockMvc.perform(post(path)
                         .content(objectMapper.writeValueAsString(createItemDto))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isCreated());
     }
 
@@ -128,7 +130,7 @@ class ItemControllerTest {
         mockMvc.perform(post(path)
                         .content(objectMapper.writeValueAsString(createCommentDto))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isCreated());
     }
 
@@ -144,7 +146,7 @@ class ItemControllerTest {
         mockMvc.perform(patch(path)
                         .content(objectMapper.writeValueAsString(updateItemDto))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -155,7 +157,7 @@ class ItemControllerTest {
         String path = API_PREFIX + "/" + itemId;
 
         mockMvc.perform(delete(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isNoContent());
     }
 }

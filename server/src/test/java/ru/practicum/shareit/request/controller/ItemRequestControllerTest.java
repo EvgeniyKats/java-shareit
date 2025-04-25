@@ -7,7 +7,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.request.dto.CreateItemRequestDto;
 import ru.practicum.shareit.request.dto.GetItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
@@ -15,11 +14,13 @@ import ru.practicum.shareit.request.service.ItemRequestService;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
 
 @WebMvcTest(controllers = ItemRequestController.class)
 class ItemRequestControllerTest {
@@ -41,12 +42,12 @@ class ItemRequestControllerTest {
         long userId = 1;
         String path = API_PREFIX;
 
-        when(itemRequestService.getUserItemRequests(anyLong()))
+        when(itemRequestService.getUserItemRequests(anyLong(), anyInt(), anyInt()))
                 .thenReturn(listAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
-                        .andExpect(status().isOk());
+                        .header(HEADER_USER_ID, userId))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -54,11 +55,11 @@ class ItemRequestControllerTest {
         long userId = 1;
         String path = API_PREFIX + "/all";
 
-        when(itemRequestService.getAllItemRequests(anyLong()))
+        when(itemRequestService.getAllItemRequests(anyLong(), anyInt(), anyInt()))
                 .thenReturn(listAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -72,7 +73,7 @@ class ItemRequestControllerTest {
                 .thenReturn(singleAns);
 
         mockMvc.perform(get(path)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isOk());
     }
 
@@ -90,7 +91,7 @@ class ItemRequestControllerTest {
         mockMvc.perform(post(path)
                         .content(objectMapper.writeValueAsString(createItemRequestDto))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(ItemController.HEADER_USER_ID, userId))
+                        .header(HEADER_USER_ID, userId))
                 .andExpect(status().isCreated());
     }
 }
