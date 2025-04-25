@@ -19,9 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.item.controller.ItemController;
 
 import java.util.List;
+
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
 
 @Validated
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class BookingController {
 
     @GetMapping("/{bookingId}")
     public GetBookingDto getBookingById(@Min(1) @PathVariable Long bookingId,
-                                        @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                        @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /bookings/{}, userId = {}", bookingId, userId);
         GetBookingDto ans = bookingService.getBookingById(bookingId, userId);
         log.info("Бронирование с id = {}, успешно получено", bookingId);
@@ -42,7 +43,7 @@ public class BookingController {
 
     @GetMapping
     public List<GetBookingDto> getBookingsForBooker(@RequestParam(defaultValue = "ALL") StateParam state,
-                                                    @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                                    @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /bookings, state = {}, userId = {}", state, userId);
         List<GetBookingDto> ans = bookingService.getBookingsForBooker(state, userId);
         log.info("Найдено {} бронирований для пользователя с id = {}", ans.size(), userId);
@@ -51,7 +52,7 @@ public class BookingController {
 
     @GetMapping("/owner")
     public List<GetBookingDto> getBookingsForOwner(@RequestParam(defaultValue = "ALL") StateParam state,
-                                                   @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                                   @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET /bookings/owner, state = {}, userId = {}", state, userId);
         List<GetBookingDto> ans = bookingService.getBookingsForOwner(state, userId);
         log.info("Найдено {} бронирований для владельца с id = {}", ans.size(), userId);
@@ -61,7 +62,7 @@ public class BookingController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public GetBookingDto createBooking(@Valid @RequestBody CreateBookingDto createBookingDto,
-                                       @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                       @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен POST /bookings userId = {}", userId);
         GetBookingDto ans = bookingService.createBooking(createBookingDto, userId);
         log.info("Бронирование было успешно создано пользователем {}", userId);
@@ -71,7 +72,7 @@ public class BookingController {
     @PatchMapping("/{bookingId}")
     public GetBookingDto makeDecisionForBooking(@Min(1) @PathVariable Long bookingId,
                                                 @RequestParam Boolean approved,
-                                                @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                                @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен PATH /bookings/{} approved = {}, userId = {}", bookingId, approved, userId);
         GetBookingDto ans = bookingService.makeDecisionForBooking(bookingId, approved, userId);
         log.info("Решение по бронированию id = {}, изменено на {}", ans.getId(), ans.getStatus());

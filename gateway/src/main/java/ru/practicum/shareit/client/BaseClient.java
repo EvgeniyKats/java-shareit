@@ -11,7 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-import ru.practicum.shareit.item.controller.ItemController;
+
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
 
 public class BaseClient {
     protected final RestTemplate rest;
@@ -105,7 +106,7 @@ public class BaseClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         if (userId != null) {
-            headers.set(ItemController.HEADER_USER_ID, String.valueOf(userId));
+            headers.set(HEADER_USER_ID, String.valueOf(userId));
         }
         return headers;
     }

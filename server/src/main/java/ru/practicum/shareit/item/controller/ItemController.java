@@ -26,13 +26,14 @@ import ru.practicum.shareit.item.dto.UpdateItemDto;
 
 import java.util.List;
 
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
+
 @Validated
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
 @Slf4j
 public class ItemController {
-    public static final String HEADER_USER_ID = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @GetMapping("/{itemId}")

@@ -14,12 +14,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.request.dto.CreateItemRequestDto;
 import ru.practicum.shareit.request.dto.GetItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import java.util.List;
+
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
 
 @Validated
 @Slf4j
@@ -31,7 +32,7 @@ public class ItemRequestController {
 
     @GetMapping
     public List<GetItemRequestDto> getUserItemRequests(
-            @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+            @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET запрос /requests , userId = {}", userId);
         List<GetItemRequestDto> ans = itemRequestService.getUserItemRequests(userId);
         log.info("У пользователя userId = {} найдено запросов = {}", userId, ans.size());
@@ -40,7 +41,7 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public List<GetItemRequestDto> getAllItemRequests(
-            @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+            @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         log.info("Получен GET запрос /requests/all , userId = {}", userId);
         List<GetItemRequestDto> ans = itemRequestService.getAllItemRequests(userId);
         log.info("Найдено всего запросов = {}", ans.size());
@@ -48,7 +49,7 @@ public class ItemRequestController {
     }
 
     @GetMapping("/{requestId}")
-    public GetItemRequestDto getItemRequestById(@Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId,
+    public GetItemRequestDto getItemRequestById(@Min(1) @RequestHeader(HEADER_USER_ID) Long userId,
                                                 @Min(1) @PathVariable Long requestId) {
         log.info("Получен GET запрос /requests/{} , userId = {}", requestId, userId);
         GetItemRequestDto ans = itemRequestService.getItemRequestById(userId, requestId);
@@ -58,7 +59,7 @@ public class ItemRequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public GetItemRequestDto createItemRequest(@Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId,
+    public GetItemRequestDto createItemRequest(@Min(1) @RequestHeader(HEADER_USER_ID) Long userId,
                                                @Valid @RequestBody CreateItemRequestDto createItemRequestDto) {
         log.info("Получен POST запрос /requests , userId = {}, createDto = {}",
                 userId, createItemRequestDto.toString());

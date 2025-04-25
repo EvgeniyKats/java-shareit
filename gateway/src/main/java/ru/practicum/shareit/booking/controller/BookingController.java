@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.practicum.shareit.booking.BookingClient;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
-import ru.practicum.shareit.item.controller.ItemController;
+
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,32 +33,32 @@ public class BookingController {
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<Object> getBookingById(@Min(1) @PathVariable Long bookingId,
-                                                 @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                                 @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         return bookingClient.getBookingById(bookingId, userId);
     }
 
     @GetMapping
     public ResponseEntity<Object> getBookingsForBooker(@RequestParam(defaultValue = "ALL") StateParam state,
-                                                       @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                                       @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         return bookingClient.getBookings(userId, state, false);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getBookingsForOwner(@RequestParam(defaultValue = "ALL") StateParam state,
-                                                      @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                                      @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         return bookingClient.getBookings(userId, state, true);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createBooking(@Valid @RequestBody CreateBookingDto createBookingDto,
-                                       @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId) {
+                                       @Min(1) @RequestHeader(HEADER_USER_ID) Long userId) {
         return bookingClient.createBooking(userId, createBookingDto);
     }
 
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> makeDecisionForBooking(@Min(1) @PathVariable Long bookingId,
-                                                         @Min(1) @RequestHeader(ItemController.HEADER_USER_ID) Long userId,
+                                                         @Min(1) @RequestHeader(HEADER_USER_ID) Long userId,
                                                          @RequestParam Boolean approved) {
         return bookingClient.makeDecisionForBooking(bookingId, userId, approved);
     }

@@ -23,14 +23,14 @@ import ru.practicum.shareit.item.dto.CreateCommentDto;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 
+import static ru.practicum.shareit.HttpHeaderNames.HEADER_USER_ID;
+
 @Slf4j
 @Validated
 @RequiredArgsConstructor
 @Controller
 @RequestMapping("/items")
 public class ItemController {
-    public static final String HEADER_USER_ID = "X-Sharer-User-Id";
-
     private final ItemClient itemClient;
 
     @GetMapping("/{itemId}")
